@@ -1,26 +1,25 @@
 package com.deranged.tvbo;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
-
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-
-public class Model {
-
-	// TIMINGS //////////////////////////////////
+public class Model
+{
 	private int time = 0;
-	private int maxTime = 10*60;
+	private int maxTime = 600;
 	private int minerals;
 	private int totalMineralsMined;
 	private int totalGasMined;
@@ -28,17 +27,13 @@ public class Model {
 	private int lastTime = 0;
 	private int supply = 0;
 	private int food = 0;
-
-	// GRAPHICS PARAMETERS //////////////////////
-	private int width;//=1050;
-	private int height;//=900;
-	private double scale = 3.0;
+	private int width;
+	private int height;
+	private double scale = 3.0D;
 	private int scroll = 0;
 	private int border = 40;
-	private int spacing = 30; // distance between rows
-	private int thickness = 15; // height of each bar
-
-	// HASH MAPS ////////////////////////////////
+	private int spacing = 30;
+	private int thickness = 15;
 	private HashMap<String, Integer> mineralCost;
 	private HashMap<String, Integer> gasCost;
 	private HashMap<String, Integer> times;
@@ -47,776 +42,735 @@ public class Model {
 	private HashMap<String, Integer> supplies;
 	private HashMap<String, String> build;
 	private HashMap<String, String> tech;
-
-	// ARRAYLISTS ///////////////////////////////
 	private ArrayList<Base> bases;
 	private ArrayList<SCObject> objects;
 	private ArrayList<SCAction> actions;
-	// GRAPHS ///////////////////////////////////
 	private int[] mineralGraph;
 	private int[] gasGraph;
 	private int[] energyGraph;
-	//
-	private String filename = "terran.xml";
-	//private String totalsText = "";
-	// MARQUEE SELECTION ////////////////////////
-	int mX1=0;
-	int mY1=0;
-	int mX2=0;
-	int mY2=0;
+	int mX1 = 0;
+	int mY1 = 0;
+	int mX2 = 0;
+	int mY2 = 0;
 
 	public Model() {
-		minerals=50;
-		gas=0;
-		totalMineralsMined=0;
-		totalGasMined=0;
-		bases = new ArrayList<Base>();
-		objects = new ArrayList<SCObject>();
-		actions = new ArrayList<SCAction>();
-		mineralGraph = new int[maxTime];
-		gasGraph = new int[maxTime];
-		energyGraph = new int[maxTime];
+		this.minerals = 50;
+		this.gas = 0;
+		this.totalMineralsMined = 0;
+		this.totalGasMined = 0;
+		this.bases = new ArrayList<Base>();
+		this.objects = new ArrayList<SCObject>();
+		this.actions = new ArrayList<SCAction>();
+		this.mineralGraph = new int[this.maxTime];
+		this.gasGraph = new int[this.maxTime];
+		this.energyGraph = new int[this.maxTime];
 		setUpHashes();
 	}
 
 	public void setup() {
 		Base b = new Base(this);
 		b.start();
-		bases.add(b);
-		//actions.add(new SCActionBuildSCV(this, 0, 1));
-		//		SCActionBuildAddon a = new SCActionBuildAddon(this, 200, 3, "TechLab");
-		//		a.setBuilding("Barracks");
-		//		actions.add(a);
+		this.bases.add(b);
 	}
 
-	public void clear() {
+	public void clear()
+	{
 		reset();
-		actions.clear();
+		this.actions.clear();
 	}
 
 	public void play() {
-		totalMineralsMined=0;
-		totalGasMined=0;
+		this.totalMineralsMined = 0;
+		this.totalGasMined = 0;
 		int t = 0;
-		int totalEnergy=0;
+		int totalEnergy = 0;
 		int p = 0;
-		lastTime = 0;
-		int s = actions.size();
-		//System.out.println("___________________________________________________");
-		while(time < maxTime) {
-			//System.out.println(printTime() + "   <Model> Minerals " + minerals);
-			for(int i = 0; i < s; i++) {
-				t = actions.get(i).getStartTime();
-				p = actions.get(i).getPreactionTime();
-				if(p == time) {
-					actions.get(i).preaction();
+		this.lastTime = 0;
+		int s = this.actions.size();
+
+		while (this.time < this.maxTime)
+		{
+			for (int i = 0; i < s; i++) {
+				t = ((SCAction)this.actions.get(i)).getStartTime();
+				p = ((SCAction)this.actions.get(i)).getPreactionTime();
+				if (p == this.time) {
+					((SCAction)this.actions.get(i)).preaction();
 				}
-				if(t == time) {
-					actions.get(i).setSupplyPoint(food+"/"+supply);
-					actions.get(i).execute();
-					if(actions.get(i).isComplete() && t+actions.get(i).getDuration()>lastTime) {
-						lastTime = t+actions.get(i).getDuration();
+				if (t == this.time) {
+					((SCAction)this.actions.get(i)).setSupplyPoint(this.food + "/" + this.supply);
+					((SCAction)this.actions.get(i)).execute();
+					if ((((SCAction)this.actions.get(i)).isComplete()) && (t + ((SCAction)this.actions.get(i)).getDuration() > this.lastTime)) {
+						this.lastTime = (t + ((SCAction)this.actions.get(i)).getDuration());
 					}
 				}
 			}
-			for(int i = 0; i < bases.size(); i++) {
-				bases.get(i).update();
+			for (int i = 0; i < this.bases.size(); i++) {
+				((Base)this.bases.get(i)).update();
 			}
 
-			for(int i = 0; i < objects.size(); i++) {
-				objects.get(i).update();
+			for (int i = 0; i < this.objects.size(); i++) {
+				((SCObject)this.objects.get(i)).update();
 			}
-			mineralGraph[time] = minerals;
-			gasGraph[time] = gas;
-			totalEnergy=0;
-			for(int b = 0; b < bases.size(); b++) {
-				totalEnergy+= bases.get(b).getEnergy();
+			this.mineralGraph[this.time] = this.minerals;
+			this.gasGraph[this.time] = this.gas;
+			totalEnergy = 0;
+			for (int b = 0; b < this.bases.size(); b++) {
+				totalEnergy += ((Base)this.bases.get(b)).getEnergy();
 			}
-			energyGraph[time] = totalEnergy;
+			this.energyGraph[this.time] = totalEnergy;
 
-			time++;
+			this.time += 1;
 		}
-		//maxTime=lastTime+180;
-		/*
-		SCStructure barracks;
-		SCAddon techlab;
-		for(int i = 0 ; i < objects.size(); i++) {
-			if(objects.get(i).getName().equals("Barracks")) {
-				barracks = (SCStructure)objects.get(i);
-				System.out.println("Barracks - " + barracks.getAddonName());
-			}
-			if(objects.get(i).getName().equals("TechLab")) {
-				techlab = (SCAddon)objects.get(i);
-				System.out.println("TechLab  - " + techlab.getAttachedTo());
-			}
-
-		}*/
-		//System.out.println("Total Minerals Mined : " + totalMineralsMined);
-
 	}
 
-	public void reset() {
-		bases.clear();
-		objects.clear();
-		for(int i = 0; i < actions.size(); i++) {
-			actions.get(i).reset();
+	public void reset()
+	{
+		this.bases.clear();
+		this.objects.clear();
+		for (int i = 0; i < this.actions.size(); i++) {
+			((SCAction)this.actions.get(i)).reset();
 		}
-		time = 0;
-		minerals = 50;
-		gas = 0;
-		food = 0;
-		supply = 0;
-		/*
-		for(int i = 0; i < maxTime; i++) {
-			mineralGraph[i] = 0;
-			gasGraph[i] = 0;
-			energyGraph[i] = 0;
-		}*/
-		//		mineralGraph = new int[maxTime];
-		//		gasGraph = new int[maxTime];
-		//		energyGraph = new int[maxTime];
+		this.time = 0;
+		this.minerals = 50;
+		this.gas = 0;
+		this.food = 0;
+		this.supply = 0;
+
 		Base b = new Base(this);
 		b.start();
-		bases.add(b);
+		this.bases.add(b);
 	}
 
+	public void setUpHashes()
+	{
+		this.mineralCost = new HashMap<String, Integer>();
+		this.gasCost = new HashMap<String, Integer>();
+		this.foods = new HashMap<String, Integer>();
+		this.supplies = new HashMap<String, Integer>();
+		this.times = new HashMap<String, Integer>();
+		this.prereqs = new HashMap<String, String>();
+		this.build = new HashMap<String, String>();
+		this.tech = new HashMap<String, String>();
 
-	public void setUpHashes() {
-		mineralCost = new HashMap<String, Integer>();
-		gasCost = new HashMap<String, Integer>();
-		foods = new HashMap<String, Integer>();
-		supplies = new HashMap<String, Integer>();
-		times = new HashMap<String, Integer>();
-		prereqs = new HashMap<String, String>();
-		build = new HashMap<String, String>();
-		tech = new HashMap<String, String>();
+		this.mineralCost.put("SCV", Integer.valueOf(50));
+		this.mineralCost.put("Marine", Integer.valueOf(50));
+		this.mineralCost.put("Marauder", Integer.valueOf(100));
+		this.mineralCost.put("Reaper", Integer.valueOf(50));
+		this.mineralCost.put("Ghost", Integer.valueOf(200));
+		this.mineralCost.put("Hellion", Integer.valueOf(100));
+		this.mineralCost.put("SiegeTank", Integer.valueOf(150));
+		this.mineralCost.put("Thor", Integer.valueOf(300));
+		this.mineralCost.put("Viking", Integer.valueOf(150));
+		this.mineralCost.put("Medivac", Integer.valueOf(100));
+		this.mineralCost.put("Banshee", Integer.valueOf(150));
+		this.mineralCost.put("Raven", Integer.valueOf(100));
+		this.mineralCost.put("Battlecruiser", Integer.valueOf(400));
 
-		// MINERAL COST //////////////////////////////////////////////////
-		//    UNITS     //
-		mineralCost.put("SCV", 50);
-		mineralCost.put("Marine", 50);
-		mineralCost.put("Marauder", 100);
-		mineralCost.put("Reaper", 50);
-		mineralCost.put("Ghost", 200);
-		mineralCost.put("Hellion", 100);
-		mineralCost.put("SiegeTank", 150);
-		mineralCost.put("Thor", 300);
-		mineralCost.put("Viking", 150);
-		mineralCost.put("Medivac", 100);
-		mineralCost.put("Banshee", 150);
-		mineralCost.put("Raven", 100);
-		mineralCost.put("Battlecruiser", 400);
-		// BUILDINGS /////
-		mineralCost.put("SupplyDepot", 100);
-		mineralCost.put("CommandCenter", 400);
-		mineralCost.put("Refinery", 75);
-		mineralCost.put("Barracks", 150);
-		mineralCost.put("Bunker", 100);
-		mineralCost.put("EngineeringBay", 125);
-		mineralCost.put("Factory", 150);
-		mineralCost.put("Starport", 150);
-		mineralCost.put("OrbitalCommand", 150);
-		mineralCost.put("PlanetaryFortress", 150);
-		mineralCost.put("GhostAcademy", 150);
-		mineralCost.put("FusionCore", 150);
-		mineralCost.put("Armory", 150);
-		mineralCost.put("TechLab", 50);
-		mineralCost.put("Reactor", 50);
-		mineralCost.put("MissileTurret", 100);
-		mineralCost.put("SensorTower", 125);
-		// research //
-		mineralCost.put("CombatShield", 100);
-		mineralCost.put("StimPack", 100);
-		mineralCost.put("ConcussiveShells", 50);
-		mineralCost.put("NitroPack", 50);
-		mineralCost.put("InfernalPreigniter", 150);
-		mineralCost.put("SiegeTech", 100);
-		mineralCost.put("250mmStrikeCannons", 150);
-		mineralCost.put("CaduceusReactor", 100);
-		mineralCost.put("CorvidReactor", 150);
-		mineralCost.put("DurableMaterials", 150);
-		mineralCost.put("SeekerMissile", 150);
-		mineralCost.put("CloakingField", 200);
-		
-		mineralCost.put("InfantryWeaponsLevel1", 100);
-		mineralCost.put("InfantryWeaponsLevel2", 175);
-		mineralCost.put("InfantryWeaponsLevel3", 250);
-		mineralCost.put("InfantryArmorLevel1", 100);
-		mineralCost.put("InfantryArmorLevel2", 175);
-		mineralCost.put("InfantryArmorLevel3", 250);
-		mineralCost.put("NeosteelFrame", 100);
-		mineralCost.put("BuildingArmor", 150);
-		mineralCost.put("HiSecAutoTracking", 100);
-		
-		mineralCost.put("VehicleWeaponsLevel1", 100);		
-		mineralCost.put("VehicleWeaponsLevel2", 175);		
-		mineralCost.put("VehicleWeaponsLevel3", 250);		
-		mineralCost.put("VehicleArmorLevel1", 100);		
-		mineralCost.put("VehicleArmorLevel2", 175);		
-		mineralCost.put("VehicleArmorLevel3", 250);
-		mineralCost.put("ShipWeaponsLevel1", 100);		
-		mineralCost.put("ShipWeaponsLevel2", 175);		
-		mineralCost.put("ShipWeaponsLevel3", 250);		
-		mineralCost.put("ShipArmorLevel1", 150);		
-		mineralCost.put("ShipArmorLevel2", 225);		
-		mineralCost.put("ShipArmorLevel3", 300);
-		
-		mineralCost.put("PersonalCloaking", 120);
-		mineralCost.put("Nuke", 60);
-		mineralCost.put("MoebiusReactor", 80);
-		mineralCost.put("BehemothReactor", 80);
-		mineralCost.put("WeaponRefit", 60);
+		this.mineralCost.put("SupplyDepot", Integer.valueOf(100));
+		this.mineralCost.put("CommandCenter", Integer.valueOf(400));
+		this.mineralCost.put("Refinery", Integer.valueOf(75));
+		this.mineralCost.put("Barracks", Integer.valueOf(150));
+		this.mineralCost.put("Bunker", Integer.valueOf(100));
+		this.mineralCost.put("EngineeringBay", Integer.valueOf(125));
+		this.mineralCost.put("Factory", Integer.valueOf(150));
+		this.mineralCost.put("Starport", Integer.valueOf(150));
+		this.mineralCost.put("OrbitalCommand", Integer.valueOf(150));
+		this.mineralCost.put("PlanetaryFortress", Integer.valueOf(150));
+		this.mineralCost.put("GhostAcademy", Integer.valueOf(150));
+		this.mineralCost.put("FusionCore", Integer.valueOf(150));
+		this.mineralCost.put("Armory", Integer.valueOf(150));
+		this.mineralCost.put("TechLab", Integer.valueOf(50));
+		this.mineralCost.put("Reactor", Integer.valueOf(50));
+		this.mineralCost.put("MissileTurret", Integer.valueOf(100));
+		this.mineralCost.put("SensorTower", Integer.valueOf(125));
 
-		// GAS COST //////////////////////////////////////////////////////
-		// UNITS //
-		gasCost.put("SCV", 0);
-		gasCost.put("Marine", 0);
-		gasCost.put("Marauder", 25);
-		gasCost.put("Reaper", 50);
-		gasCost.put("Ghost", 100);
-		gasCost.put("Hellion", 0);
-		gasCost.put("SiegeTank", 125);
-		gasCost.put("Thor", 200);
-		gasCost.put("Viking", 75);
-		gasCost.put("Medivac", 100);
-		gasCost.put("Banshee", 100);
-		gasCost.put("Raven", 200);
-		gasCost.put("Battlecruiser", 300);
-		// BUILDINGS //
-		gasCost.put("SupplyDepot", 0);
-		gasCost.put("Barracks", 0);
-		gasCost.put("Factory", 100);
-		gasCost.put("Starport", 100);
-		gasCost.put("OrbitalCommand", 0);
-		gasCost.put("PlanetaryFortress", 150);
-		gasCost.put("GhostAcademy", 50);
-		gasCost.put("FusionCore", 150);
-		gasCost.put("Armory", 100);
-		gasCost.put("TechLab", 25);
-		gasCost.put("Reactor", 50);
-		gasCost.put("SensorTower", 100);
-		// research //
-		gasCost.put("CombatShield", 100);
-		gasCost.put("StimPack", 100);
-		gasCost.put("ConcussiveShells", 50);
-		gasCost.put("NitroPack", 50);
-		gasCost.put("InfernalPreigniter", 150);
-		gasCost.put("SiegeTech", 100);
-		gasCost.put("250mmStrikeCannons", 150);
-		gasCost.put("CaduceusReactor", 100);
-		gasCost.put("CorvidReactor", 150);
-		gasCost.put("DurableMaterials", 150);
-		gasCost.put("SeekerMissile", 150);
-		gasCost.put("CloakingField", 200);
-		
-		gasCost.put("InfantryWeaponsLevel1", 100);
-		gasCost.put("InfantryWeaponsLevel2", 175);
-		gasCost.put("InfantryWeaponsLevel3", 250);
-		gasCost.put("InfantryArmorLevel1", 100);
-		gasCost.put("InfantryArmorLevel2", 175);
-		gasCost.put("InfantryArmorLevel3", 250);
-		gasCost.put("NeosteelFrame", 100);
-		gasCost.put("BuildingArmor", 150);
-		gasCost.put("HiSecAutoTracking", 100);
-		
-		gasCost.put("VehicleWeaponsLevel1", 100);		
-		gasCost.put("VehicleWeaponsLevel2", 175);		
-		gasCost.put("VehicleWeaponsLevel3", 250);		
-		gasCost.put("VehicleArmorLevel1", 100);		
-		gasCost.put("VehicleArmorLevel2", 175);		
-		gasCost.put("VehicleArmorLevel3", 250);
-		gasCost.put("ShipWeaponsLevel1", 100);		
-		gasCost.put("ShipWeaponsLevel2", 175);		
-		gasCost.put("ShipWeaponsLevel3", 250);		
-		gasCost.put("ShipArmorLevel1", 150);		
-		gasCost.put("ShipArmorLevel2", 225);		
-		gasCost.put("ShipArmorLevel3", 300);
-		
-		gasCost.put("PersonalCloaking", 120);
-		gasCost.put("Nuke", 60);
-		gasCost.put("MoebiusReactor", 80);
-		gasCost.put("BehemothReactor", 80);
-		gasCost.put("WeaponRefit", 60);
+		this.mineralCost.put("CombatShield", Integer.valueOf(100));
+		this.mineralCost.put("StimPack", Integer.valueOf(100));
+		this.mineralCost.put("ConcussiveShells", Integer.valueOf(50));
+		this.mineralCost.put("NitroPack", Integer.valueOf(50));
+		this.mineralCost.put("InfernalPreigniter", Integer.valueOf(150));
+		this.mineralCost.put("SiegeTech", Integer.valueOf(100));
+		this.mineralCost.put("250mmStrikeCannons", Integer.valueOf(150));
+		this.mineralCost.put("CaduceusReactor", Integer.valueOf(100));
+		this.mineralCost.put("CorvidReactor", Integer.valueOf(150));
+		this.mineralCost.put("DurableMaterials", Integer.valueOf(150));
+		this.mineralCost.put("SeekerMissile", Integer.valueOf(150));
+		this.mineralCost.put("CloakingField", Integer.valueOf(200));
 
-		// TIMES /////////////////////////////////////////////////////////
-		// UNITS //
-		times.put("SCV", 17);
-		times.put("Marine", 25);
-		times.put("Marauder", 30);
-		times.put("Reaper", 45);
-		times.put("Ghost", 40);
-		times.put("Hellion", 30);
-		times.put("SiegeTank", 45);
-		times.put("Thor", 60);
-		times.put("Viking", 42);
-		times.put("Medivac", 42);
-		times.put("Banshee", 60);
-		times.put("Raven", 60);
-		times.put("Battlecruiser", 90);
-		times.put("Mule", 90);
-		times.put("TransferToGas", 20);
-		// BUILDINGS //
-		times.put("CommandCenter", 100);
-		times.put("Refinery", 30);
-		times.put("SupplyDepot", 30);
-		times.put("Barracks", 60);
-		times.put("Bunker", 40);
-		times.put("Factory", 60);
-		times.put("Starport", 50);
-		times.put("EngineeringBay", 35);
-		times.put("OrbitalCommand", 35);
-		times.put("PlanetaryFortress", 50);
-		times.put("CalldownSupply", 30);
-		times.put("GhostAcademy", 40);
-		times.put("FusionCore", 65);
-		times.put("Armory", 65);
-		times.put("TechLab", 25);
-		times.put("Reactor", 50);
-		times.put("SensorTower", 25);
-		times.put("MissileTurret", 25);
-		times.put("Lift", 25);
-		// research //
-		times.put("CombatShield", 110);
-		times.put("StimPack", 170);
-		times.put("ConcussiveShells", 60);
-		times.put("NitroPack", 100);
-		times.put("InfernalPreigniter", 110);
-		times.put("SiegeTech", 80);
-		times.put("250mmStrikeCannons", 110);
-		times.put("CaduceusReactor", 80);
-		times.put("CorvidReactor", 110);
-		times.put("DurableMaterials", 110);
-		times.put("SeekerMissile", 110);
-		times.put("CloakingField", 110);
-		
-		times.put("InfantryWeaponsLevel1", 160);
-		times.put("InfantryWeaponsLevel2", 190);
-		times.put("InfantryWeaponsLevel3", 220);
-		times.put("InfantryArmorLevel1", 160);
-		times.put("InfantryArmorLevel2", 190);
-		times.put("InfantryArmorLevel3", 220);
-		times.put("NeosteelFrame", 110);
-		times.put("BuildingArmor", 140);
-		times.put("HiSecAutoTracking", 80);
-		
-		times.put("VehicleWeaponsLevel1", 160);		
-		times.put("VehicleWeaponsLevel2", 190);		
-		times.put("VehicleWeaponsLevel3", 220);		
-		times.put("VehicleArmorLevel1", 160);		
-		times.put("VehicleArmorLevel2", 190);		
-		times.put("VehicleArmorLevel3", 220);
-		times.put("ShipWeaponsLevel1", 160);		
-		times.put("ShipWeaponsLevel2", 190);		
-		times.put("ShipWeaponsLevel3", 220);		
-		times.put("ShipArmorLevel1", 160);		
-		times.put("ShipArmorLevel2", 190);		
-		times.put("ShipArmorLevel3", 220);
-		
-		times.put("PersonalCloaking", 120);
-		times.put("Nuke", 60);
-		times.put("MoebiusReactor", 80);
-		times.put("BehemothReactor", 80);
-		times.put("WeaponRefit", 60);
+		this.mineralCost.put("InfantryWeaponsLevel1", Integer.valueOf(100));
+		this.mineralCost.put("InfantryWeaponsLevel2", Integer.valueOf(175));
+		this.mineralCost.put("InfantryWeaponsLevel3", Integer.valueOf(250));
+		this.mineralCost.put("InfantryArmorLevel1", Integer.valueOf(100));
+		this.mineralCost.put("InfantryArmorLevel2", Integer.valueOf(175));
+		this.mineralCost.put("InfantryArmorLevel3", Integer.valueOf(250));
+		this.mineralCost.put("NeosteelFrame", Integer.valueOf(100));
+		this.mineralCost.put("BuildingArmor", Integer.valueOf(150));
+		this.mineralCost.put("HiSecAutoTracking", Integer.valueOf(100));
 
-		// FOOD //////////////////////////////////////////////////////////
-		foods.put("SCV", 1);
-		foods.put("Marine", 1);
-		foods.put("Marauder", 2);
-		foods.put("Reaper", 1);
-		foods.put("Ghost", 2);
-		foods.put("Hellion", 2);
-		foods.put("SiegeTank", 3);
-		foods.put("Thor", 6);
-		foods.put("Viking", 2);
-		foods.put("Medivac", 2);
-		foods.put("Banshee", 3);
-		foods.put("Raven", 2);
-		foods.put("Battlecruiser", 6);
-		// SUPPLY ////////////////////////////////////////////////////////
-		supplies.put("SupplyDepot", 8);
-		// PREREQ ////////////////////////////////////////////////////////
-		prereqs.put("Barracks", "SupplyDepot");
-		prereqs.put("Factory", "Barracks");
-		prereqs.put("Bunker", "Barracks");
-		prereqs.put("GhostAcademy", "Barracks");
-		prereqs.put("Starport", "Factory");
-		prereqs.put("FusionCore", "Starport");
-		prereqs.put("Armory", "Factory");
-		prereqs.put("OrbitalCommand", "Barracks");
-		prereqs.put("Bunker", "Barracks");
-		prereqs.put("Ghost", "GhostAcademy");
-		prereqs.put("Thor", "Armory");
-		prereqs.put("Battlecruiser", "FusionCore");
-		prereqs.put("MissileTurret", "EngineeringBay");
-		prereqs.put("PlanetaryFortress", "EngineeringBay");
-		prereqs.put("SensorTower", "EngineeringBay");
-		// research
-		prereqs.put("NitroPack", "Factory");
-		prereqs.put("InfantryWeaponsLevel2", "Armory");
-		prereqs.put("InfantryWeaponsLevel3", "Armory");
-		prereqs.put("InfantryArmorLevel2", "Armory");
-		prereqs.put("InfantryArmorLevel3", "Armory");
-		// BUILD /////////////////////////////////////////////////////////
-		build.put("Marine", "Barracks");
-		build.put("Marauder", "Barracks");
-		build.put("Reaper", "Barracks");
-		build.put("Ghost", "Barracks");
-		build.put("Hellion", "Factory");
-		build.put("SiegeTank", "Factory");
-		build.put("Thor", "Factory");
-		build.put("Medivac", "Starport");
-		build.put("Viking", "Starport");
-		build.put("Banshee", "Starport");
-		build.put("Raven", "Starport");
-		build.put("Battlecruiser", "Starport");
-		  // research
-		build.put("CombatShield", "Barracks");
-		build.put("StimPack", "Barracks");
-		build.put("ConcussiveShells", "Barracks");
-		build.put("NitroPack", "Barracks");
-		build.put("InfernalPreigniter", "Factory");
-		build.put("SiegeTech", "Factory");
-		build.put("250mmStrikeCannons", "Factory");
-		build.put("CaduceusReactor", "Starport");
-		build.put("CorvidReactor", "Starport");
-		build.put("DurableMaterials", "Starport");
-		build.put("SeekerMissile", "Starport");
-		build.put("CloakingField", "Starport");
-		
-		build.put("InfantryWeaponsLevel1", "EngineeringBay");
-		build.put("InfantryWeaponsLevel2", "EngineeringBay");
-		build.put("InfantryWeaponsLevel3", "EngineeringBay");
-		build.put("InfantryArmorLevel1", "EngineeringBay");
-		build.put("InfantryArmorLevel2", "EngineeringBay");
-		build.put("InfantryArmorLevel3", "EngineeringBay");
-		build.put("NeosteelFrame", "EngineeringBay");
-		build.put("BuildingArmor", "EngineeringBay");
-		build.put("HiSecAutoTracking", "EngineeringBay");
-		
-		build.put("VehicleWeaponsLevel1", "Armory");		
-		build.put("VehicleWeaponsLevel2", "Armory");		
-		build.put("VehicleWeaponsLevel3", "Armory");		
-		build.put("VehicleArmorLevel1", "Armory");		
-		build.put("VehicleArmorLevel2", "Armory");		
-		build.put("VehicleArmorLevel3", "Armory");
-		build.put("ShipWeaponsLevel1", "Armory");		
-		build.put("ShipWeaponsLevel2", "Armory");		
-		build.put("ShipWeaponsLevel3", "Armory");		
-		build.put("ShipArmorLevel1", "Armory");		
-		build.put("ShipArmorLevel2", "Armory");		
-		build.put("ShipArmorLevel3", "Armory");
-		
-		build.put("PersonalCloaking", "GhostAcademy");
-		build.put("BehemothReactor", "FusionCore");
-		build.put("WeaponRefit", "FusionCore");
-		build.put("MoebiusReactor", "GhostAcademy");
-		// TECH //////////////////////////////////////////////////////////
-		tech.put("Marauder", "TechLab");
-		tech.put("Reaper", "TechLab");
-		tech.put("Ghost", "TechLab");
-		tech.put("SiegeTank", "TechLab");
-		tech.put("Thor", "TechLab");
-		tech.put("Banshee", "TechLab");
-		tech.put("Raven", "TechLab");
-		tech.put("Battlecruiser", "TechLab");
-		//
-		tech.put("CombatShield", "TechLab");
-		tech.put("StimPack", "TechLab");
-		tech.put("ConcussiveShells", "TechLab");
-		tech.put("NitroPack", "TechLab");
-		tech.put("InfernalPreigniter", "TechLab");
-		tech.put("SiegeTech", "TechLab");
-		tech.put("250mmStrikeCannons", "TechLab");
-		tech.put("CaduceusReactor", "TechLab");
-		tech.put("CorvidReactor", "TechLab");
-		tech.put("DurableMaterials", "TechLab");
-		tech.put("SeekerMissile", "TechLab");
-		tech.put("CloakingField", "TechLab");
+		this.mineralCost.put("VehicleWeaponsLevel1", Integer.valueOf(100));
+		this.mineralCost.put("VehicleWeaponsLevel2", Integer.valueOf(175));
+		this.mineralCost.put("VehicleWeaponsLevel3", Integer.valueOf(250));
+		this.mineralCost.put("VehicleArmorLevel1", Integer.valueOf(100));
+		this.mineralCost.put("VehicleArmorLevel2", Integer.valueOf(175));
+		this.mineralCost.put("VehicleArmorLevel3", Integer.valueOf(250));
+		this.mineralCost.put("ShipWeaponsLevel1", Integer.valueOf(100));
+		this.mineralCost.put("ShipWeaponsLevel2", Integer.valueOf(175));
+		this.mineralCost.put("ShipWeaponsLevel3", Integer.valueOf(250));
+		this.mineralCost.put("ShipArmorLevel1", Integer.valueOf(150));
+		this.mineralCost.put("ShipArmorLevel2", Integer.valueOf(225));
+		this.mineralCost.put("ShipArmorLevel3", Integer.valueOf(300));
+
+		this.mineralCost.put("PersonalCloaking", Integer.valueOf(120));
+		this.mineralCost.put("Nuke", Integer.valueOf(60));
+		this.mineralCost.put("MoebiusReactor", Integer.valueOf(80));
+		this.mineralCost.put("BehemothReactor", Integer.valueOf(80));
+		this.mineralCost.put("WeaponRefit", Integer.valueOf(60));
+
+		this.gasCost.put("SCV", Integer.valueOf(0));
+		this.gasCost.put("Marine", Integer.valueOf(0));
+		this.gasCost.put("Marauder", Integer.valueOf(25));
+		this.gasCost.put("Reaper", Integer.valueOf(50));
+		this.gasCost.put("Ghost", Integer.valueOf(100));
+		this.gasCost.put("Hellion", Integer.valueOf(0));
+		this.gasCost.put("SiegeTank", Integer.valueOf(125));
+		this.gasCost.put("Thor", Integer.valueOf(200));
+		this.gasCost.put("Viking", Integer.valueOf(75));
+		this.gasCost.put("Medivac", Integer.valueOf(100));
+		this.gasCost.put("Banshee", Integer.valueOf(100));
+		this.gasCost.put("Raven", Integer.valueOf(200));
+		this.gasCost.put("Battlecruiser", Integer.valueOf(300));
+
+		this.gasCost.put("SupplyDepot", Integer.valueOf(0));
+		this.gasCost.put("Barracks", Integer.valueOf(0));
+		this.gasCost.put("Factory", Integer.valueOf(100));
+		this.gasCost.put("Starport", Integer.valueOf(100));
+		this.gasCost.put("OrbitalCommand", Integer.valueOf(0));
+		this.gasCost.put("PlanetaryFortress", Integer.valueOf(150));
+		this.gasCost.put("GhostAcademy", Integer.valueOf(50));
+		this.gasCost.put("FusionCore", Integer.valueOf(150));
+		this.gasCost.put("Armory", Integer.valueOf(100));
+		this.gasCost.put("TechLab", Integer.valueOf(25));
+		this.gasCost.put("Reactor", Integer.valueOf(50));
+		this.gasCost.put("SensorTower", Integer.valueOf(100));
+
+		this.gasCost.put("CombatShield", Integer.valueOf(100));
+		this.gasCost.put("StimPack", Integer.valueOf(100));
+		this.gasCost.put("ConcussiveShells", Integer.valueOf(50));
+		this.gasCost.put("NitroPack", Integer.valueOf(50));
+		this.gasCost.put("InfernalPreigniter", Integer.valueOf(150));
+		this.gasCost.put("SiegeTech", Integer.valueOf(100));
+		this.gasCost.put("250mmStrikeCannons", Integer.valueOf(150));
+		this.gasCost.put("CaduceusReactor", Integer.valueOf(100));
+		this.gasCost.put("CorvidReactor", Integer.valueOf(150));
+		this.gasCost.put("DurableMaterials", Integer.valueOf(150));
+		this.gasCost.put("SeekerMissile", Integer.valueOf(150));
+		this.gasCost.put("CloakingField", Integer.valueOf(200));
+
+		this.gasCost.put("InfantryWeaponsLevel1", Integer.valueOf(100));
+		this.gasCost.put("InfantryWeaponsLevel2", Integer.valueOf(175));
+		this.gasCost.put("InfantryWeaponsLevel3", Integer.valueOf(250));
+		this.gasCost.put("InfantryArmorLevel1", Integer.valueOf(100));
+		this.gasCost.put("InfantryArmorLevel2", Integer.valueOf(175));
+		this.gasCost.put("InfantryArmorLevel3", Integer.valueOf(250));
+		this.gasCost.put("NeosteelFrame", Integer.valueOf(100));
+		this.gasCost.put("BuildingArmor", Integer.valueOf(150));
+		this.gasCost.put("HiSecAutoTracking", Integer.valueOf(100));
+
+		this.gasCost.put("VehicleWeaponsLevel1", Integer.valueOf(100));
+		this.gasCost.put("VehicleWeaponsLevel2", Integer.valueOf(175));
+		this.gasCost.put("VehicleWeaponsLevel3", Integer.valueOf(250));
+		this.gasCost.put("VehicleArmorLevel1", Integer.valueOf(100));
+		this.gasCost.put("VehicleArmorLevel2", Integer.valueOf(175));
+		this.gasCost.put("VehicleArmorLevel3", Integer.valueOf(250));
+		this.gasCost.put("ShipWeaponsLevel1", Integer.valueOf(100));
+		this.gasCost.put("ShipWeaponsLevel2", Integer.valueOf(175));
+		this.gasCost.put("ShipWeaponsLevel3", Integer.valueOf(250));
+		this.gasCost.put("ShipArmorLevel1", Integer.valueOf(150));
+		this.gasCost.put("ShipArmorLevel2", Integer.valueOf(225));
+		this.gasCost.put("ShipArmorLevel3", Integer.valueOf(300));
+
+		this.gasCost.put("PersonalCloaking", Integer.valueOf(120));
+		this.gasCost.put("Nuke", Integer.valueOf(60));
+		this.gasCost.put("MoebiusReactor", Integer.valueOf(80));
+		this.gasCost.put("BehemothReactor", Integer.valueOf(80));
+		this.gasCost.put("WeaponRefit", Integer.valueOf(60));
+
+		this.times.put("SCV", Integer.valueOf(17));
+		this.times.put("Marine", Integer.valueOf(25));
+		this.times.put("Marauder", Integer.valueOf(30));
+		this.times.put("Reaper", Integer.valueOf(45));
+		this.times.put("Ghost", Integer.valueOf(40));
+		this.times.put("Hellion", Integer.valueOf(30));
+		this.times.put("SiegeTank", Integer.valueOf(45));
+		this.times.put("Thor", Integer.valueOf(60));
+		this.times.put("Viking", Integer.valueOf(42));
+		this.times.put("Medivac", Integer.valueOf(42));
+		this.times.put("Banshee", Integer.valueOf(60));
+		this.times.put("Raven", Integer.valueOf(60));
+		this.times.put("Battlecruiser", Integer.valueOf(90));
+		this.times.put("Mule", Integer.valueOf(90));
+		this.times.put("TransferToGas", Integer.valueOf(20));
+		this.times.put("TransferOffGas", Integer.valueOf(20));
+		this.times.put("Maynard", Integer.valueOf(20));
+
+		this.times.put("CommandCenter", Integer.valueOf(100));
+		this.times.put("Refinery", Integer.valueOf(30));
+		this.times.put("SupplyDepot", Integer.valueOf(30));
+		this.times.put("Barracks", Integer.valueOf(60));
+		this.times.put("Bunker", Integer.valueOf(40));
+		this.times.put("Factory", Integer.valueOf(60));
+		this.times.put("Starport", Integer.valueOf(50));
+		this.times.put("EngineeringBay", Integer.valueOf(35));
+		this.times.put("OrbitalCommand", Integer.valueOf(35));
+		this.times.put("PlanetaryFortress", Integer.valueOf(50));
+		this.times.put("CalldownSupply", Integer.valueOf(30));
+		this.times.put("GhostAcademy", Integer.valueOf(40));
+		this.times.put("FusionCore", Integer.valueOf(65));
+		this.times.put("Armory", Integer.valueOf(65));
+		this.times.put("TechLab", Integer.valueOf(25));
+		this.times.put("Reactor", Integer.valueOf(50));
+		this.times.put("SensorTower", Integer.valueOf(25));
+		this.times.put("MissileTurret", Integer.valueOf(25));
+
+		this.times.put("Scan", Integer.valueOf(30));
+
+		this.times.put("CombatShield", Integer.valueOf(110));
+		this.times.put("StimPack", Integer.valueOf(170));
+		this.times.put("ConcussiveShells", Integer.valueOf(60));
+		this.times.put("NitroPack", Integer.valueOf(100));
+		this.times.put("InfernalPreigniter", Integer.valueOf(110));
+		this.times.put("SiegeTech", Integer.valueOf(80));
+		this.times.put("250mmStrikeCannons", Integer.valueOf(110));
+		this.times.put("CaduceusReactor", Integer.valueOf(80));
+		this.times.put("CorvidReactor", Integer.valueOf(110));
+		this.times.put("DurableMaterials", Integer.valueOf(110));
+		this.times.put("SeekerMissile", Integer.valueOf(110));
+		this.times.put("CloakingField", Integer.valueOf(110));
+
+		this.times.put("InfantryWeaponsLevel1", Integer.valueOf(160));
+		this.times.put("InfantryWeaponsLevel2", Integer.valueOf(190));
+		this.times.put("InfantryWeaponsLevel3", Integer.valueOf(220));
+		this.times.put("InfantryArmorLevel1", Integer.valueOf(160));
+		this.times.put("InfantryArmorLevel2", Integer.valueOf(190));
+		this.times.put("InfantryArmorLevel3", Integer.valueOf(220));
+		this.times.put("NeosteelFrame", Integer.valueOf(110));
+		this.times.put("BuildingArmor", Integer.valueOf(140));
+		this.times.put("HiSecAutoTracking", Integer.valueOf(80));
+
+		this.times.put("VehicleWeaponsLevel1", Integer.valueOf(160));
+		this.times.put("VehicleWeaponsLevel2", Integer.valueOf(190));
+		this.times.put("VehicleWeaponsLevel3", Integer.valueOf(220));
+		this.times.put("VehicleArmorLevel1", Integer.valueOf(160));
+		this.times.put("VehicleArmorLevel2", Integer.valueOf(190));
+		this.times.put("VehicleArmorLevel3", Integer.valueOf(220));
+		this.times.put("ShipWeaponsLevel1", Integer.valueOf(160));
+		this.times.put("ShipWeaponsLevel2", Integer.valueOf(190));
+		this.times.put("ShipWeaponsLevel3", Integer.valueOf(220));
+		this.times.put("ShipArmorLevel1", Integer.valueOf(160));
+		this.times.put("ShipArmorLevel2", Integer.valueOf(190));
+		this.times.put("ShipArmorLevel3", Integer.valueOf(220));
+
+		this.times.put("PersonalCloaking", Integer.valueOf(120));
+		this.times.put("Nuke", Integer.valueOf(60));
+		this.times.put("MoebiusReactor", Integer.valueOf(80));
+		this.times.put("BehemothReactor", Integer.valueOf(80));
+		this.times.put("WeaponRefit", Integer.valueOf(60));
+
+		this.foods.put("SCV", Integer.valueOf(1));
+		this.foods.put("Marine", Integer.valueOf(1));
+		this.foods.put("Marauder", Integer.valueOf(2));
+		this.foods.put("Reaper", Integer.valueOf(1));
+		this.foods.put("Ghost", Integer.valueOf(2));
+		this.foods.put("Hellion", Integer.valueOf(2));
+		this.foods.put("SiegeTank", Integer.valueOf(3));
+		this.foods.put("Thor", Integer.valueOf(6));
+		this.foods.put("Viking", Integer.valueOf(2));
+		this.foods.put("Medivac", Integer.valueOf(2));
+		this.foods.put("Banshee", Integer.valueOf(3));
+		this.foods.put("Raven", Integer.valueOf(2));
+		this.foods.put("Battlecruiser", Integer.valueOf(6));
+
+		this.supplies.put("SupplyDepot", Integer.valueOf(8));
+
+		this.prereqs.put("Barracks", "SupplyDepot");
+		this.prereqs.put("Factory", "Barracks");
+		this.prereqs.put("Bunker", "Barracks");
+		this.prereqs.put("GhostAcademy", "Barracks");
+		this.prereqs.put("Starport", "Factory");
+		this.prereqs.put("FusionCore", "Starport");
+		this.prereqs.put("Armory", "Factory");
+		this.prereqs.put("OrbitalCommand", "Barracks");
+		this.prereqs.put("Bunker", "Barracks");
+		this.prereqs.put("Ghost", "GhostAcademy");
+		this.prereqs.put("Thor", "Armory");
+		this.prereqs.put("Battlecruiser", "FusionCore");
+		this.prereqs.put("MissileTurret", "EngineeringBay");
+		this.prereqs.put("PlanetaryFortress", "EngineeringBay");
+		this.prereqs.put("SensorTower", "EngineeringBay");
+		this.prereqs.put("Nuke", "Factory");
+
+		this.prereqs.put("NitroPack", "Factory");
+		this.prereqs.put("InfantryWeaponsLevel2", "Armory");
+		this.prereqs.put("InfantryWeaponsLevel3", "Armory");
+		this.prereqs.put("InfantryArmorLevel2", "Armory");
+		this.prereqs.put("InfantryArmorLevel3", "Armory");
+
+		this.build.put("Marine", "Barracks");
+		this.build.put("Marauder", "Barracks");
+		this.build.put("Reaper", "Barracks");
+		this.build.put("Ghost", "Barracks");
+		this.build.put("Hellion", "Factory");
+		this.build.put("SiegeTank", "Factory");
+		this.build.put("Thor", "Factory");
+		this.build.put("Medivac", "Starport");
+		this.build.put("Viking", "Starport");
+		this.build.put("Banshee", "Starport");
+		this.build.put("Raven", "Starport");
+		this.build.put("Battlecruiser", "Starport");
+
+		this.build.put("CombatShield", "Barracks");
+		this.build.put("StimPack", "Barracks");
+		this.build.put("ConcussiveShells", "Barracks");
+		this.build.put("NitroPack", "Barracks");
+		this.build.put("InfernalPreigniter", "Factory");
+		this.build.put("SiegeTech", "Factory");
+		this.build.put("250mmStrikeCannons", "Factory");
+		this.build.put("CaduceusReactor", "Starport");
+		this.build.put("CorvidReactor", "Starport");
+		this.build.put("DurableMaterials", "Starport");
+		this.build.put("SeekerMissile", "Starport");
+		this.build.put("CloakingField", "Starport");
+
+		this.build.put("InfantryWeaponsLevel1", "EngineeringBay");
+		this.build.put("InfantryWeaponsLevel2", "EngineeringBay");
+		this.build.put("InfantryWeaponsLevel3", "EngineeringBay");
+		this.build.put("InfantryArmorLevel1", "EngineeringBay");
+		this.build.put("InfantryArmorLevel2", "EngineeringBay");
+		this.build.put("InfantryArmorLevel3", "EngineeringBay");
+		this.build.put("NeosteelFrame", "EngineeringBay");
+		this.build.put("BuildingArmor", "EngineeringBay");
+		this.build.put("HiSecAutoTracking", "EngineeringBay");
+
+		this.build.put("VehicleWeaponsLevel1", "Armory");
+		this.build.put("VehicleWeaponsLevel2", "Armory");
+		this.build.put("VehicleWeaponsLevel3", "Armory");
+		this.build.put("VehicleArmorLevel1", "Armory");
+		this.build.put("VehicleArmorLevel2", "Armory");
+		this.build.put("VehicleArmorLevel3", "Armory");
+		this.build.put("ShipWeaponsLevel1", "Armory");
+		this.build.put("ShipWeaponsLevel2", "Armory");
+		this.build.put("ShipWeaponsLevel3", "Armory");
+		this.build.put("ShipArmorLevel1", "Armory");
+		this.build.put("ShipArmorLevel2", "Armory");
+		this.build.put("ShipArmorLevel3", "Armory");
+
+		this.build.put("PersonalCloaking", "GhostAcademy");
+		this.build.put("BehemothReactor", "FusionCore");
+		this.build.put("WeaponRefit", "FusionCore");
+		this.build.put("MoebiusReactor", "GhostAcademy");
+		this.build.put("Nuke", "GhostAcademy");
+
+		this.tech.put("Marauder", "TechLab");
+		this.tech.put("Reaper", "TechLab");
+		this.tech.put("Ghost", "TechLab");
+		this.tech.put("SiegeTank", "TechLab");
+		this.tech.put("Thor", "TechLab");
+		this.tech.put("Banshee", "TechLab");
+		this.tech.put("Raven", "TechLab");
+		this.tech.put("Battlecruiser", "TechLab");
+
+		this.tech.put("CombatShield", "TechLab");
+		this.tech.put("StimPack", "TechLab");
+		this.tech.put("ConcussiveShells", "TechLab");
+		this.tech.put("NitroPack", "TechLab");
+		this.tech.put("InfernalPreigniter", "TechLab");
+		this.tech.put("SiegeTech", "TechLab");
+		this.tech.put("250mmStrikeCannons", "TechLab");
+		this.tech.put("CaduceusReactor", "TechLab");
+		this.tech.put("CorvidReactor", "TechLab");
+		this.tech.put("DurableMaterials", "TechLab");
+		this.tech.put("SeekerMissile", "TechLab");
+		this.tech.put("CloakingField", "TechLab");
 	}
 
 	public void addUnitAction(String dropDown) {
-		int x=maxTime-1;
-		int y=1;
+		int x = this.maxTime - 1;
+		int y = 1;
 		int dur = getTime(dropDown);
-		//System.out.println(dropDown);
 		SCAction action;
-		if(dropDown.equals("SCV")) {
+		if (dropDown.equals("SCV")) {
 			action = new SCActionBuildSCV(this, x, y);
-		} else if(dropDown.equals("Mule")) {
-			action = new SCActionMule(this, x, y);
-		} else if(dropDown.equals("TransferToGas")) {
-			action = new SCActionTransferToGas(this, x, y);
-		} else if(dropDown.equals("SCV")) {
-			action = new SCActionBuildSCV(this, x, y);
-		} else {
-			action = new SCActionBuildUnit(this, x, y, dropDown);
-			// TODO set to SCActionBuildUnit
 		}
+		else if (dropDown.equals("Mule")) {
+			action = new OCAction(OCAction.OCType.MULE,this, x, y);
+		}
+		else if (dropDown.equals("TransferToGas")) {
+			action = new SCActionTransferToGas(this, x, y);
+		}
+		else if (dropDown.equals("TransferOffGas")) {
+			action = new SCActionTransferOffGas(this, x, y);
+		}
+		else if (dropDown.equals("Maynard")) {
+			action = new SCActionMaynard(this, x, y);
+		}
+		else if (dropDown.equals("Scout"))
+			action = new SCActionScout(this, x, y);
+		else
+			action = new SCActionBuildUnit(this, x, y, dropDown); 
 
-		actions.add(action);
-		this.reset();
-		this.play();
 
-		if(action.isComplete()) {
-			while(action.getStartTime()>0 && action.isComplete()) {
+		this.actions.add(action);
+		reset();
+		play();
+
+		if (action.isComplete()) {
+			do {
 				action.addStartTime(-1);
-				this.reset();
-				this.play();
-				if(!action.isComplete()) {
+				reset();
+				play();
+				if (!action.isComplete())
 					action.addStartTime(1);
-				}
-			}
-		} else {
-			action.setStartTime(lastTime);
+				if (action.getStartTime() <= 0) break; 
+			}while (action.isComplete());
+		}
+		else
+		{
+			action.setStartTime(this.lastTime);
 		}
 		x = action.getStartTime();
-		int size = actions.size();
-		int x2;
-		int end2;
-		//if(markY>=0) {
-		//	y = markY;
-		//}
-		int end = x+dur;
+		int size = this.actions.size();
+
+		int end = x + dur;
 
 		boolean space = false;
-		/*
-		 * 1
-		 * |-----------|    ax < x && aend > end 
-		 *   |----|
-		 * 
-		 * 2
-		 * |------|         ax < x && aend > x
-		 *     |-------|
-		 * 
-		 * 3
-		 *     |-------|   x < ax && ax < end && aend > end
-		 * |------|
-		 * 
-		 * 4
-		 *    |----|       ax > x && aend < end
-		 * |-----------|
-		 * 
-		 * 
-		 */
-		SCAction action2;
-		while(!space) {
-			space=true;
-			for(int i = 0; i < size-1;i++) {
-				action2 = actions.get(i);
-				x2=action2.getStartTime();
-				end2=action2.getStartTime()+action2.getDuration();
-				if(action2.getY() == y) {
-					if(x <= x2 && x2<end && end<=end2) {
-						//						System.out.println("y:" + y + " | " + x +" - "+end+" & " + x2 + " - " + end2 + "***");
-						space=false;
-					} else if(x2<=x && x<end2 && end2<=end) {
-						//						System.out.println("y:" + y + " | " + x +" - "+end+" & " + x2 + " - " + end2 + "***");
-						space=false;
-					} else if(x<x2 && end2<end) {
-						//						System.out.println("y:" + y + " | " + x +" - "+end+" & " + x2 + " - " + end2 + "***");
-						space=false;
-					} else if(x2<x && end<end2) {
-						//						System.out.println("y:" + y + " | " + x +" - "+end+" & " + x2 + " - " + end2 + "***");
-						space=false;
-					} else {
-						//						System.out.println("y:" + y + " | " + x +" - "+end+" & " + x2 + " - " + end2);
+
+		while (!space) {
+			space = true;
+			for (int i = 0; i < size - 1; i++) {
+				SCAction action2 = (SCAction)this.actions.get(i);
+				int x2 = action2.getStartTime();
+				int end2 = action2.getStartTime() + action2.getDuration();
+				if (action2.getY() == y) {
+					if ((x <= x2) && (x2 < end) && (end <= end2))
+					{
+						space = false;
+					} else if ((x2 <= x) && (x < end2) && (end2 <= end))
+					{
+						space = false;
+					} else if ((x < x2) && (end2 < end))
+					{
+						space = false; } else {
+							if ((x2 >= x) || (end >= end2))
+								continue;
+							space = false;
+						}
+				}
+
+			}
+
+			if (!space) {
+				y++;
+			}
+		}
+		action.setY(y);
+	}
+
+	public void addBuildingAction(String dropDown)
+	{
+		int x = this.maxTime - 1;
+		int y = 1;
+		int dur = getTime(dropDown);
+		SCAction action;
+		if (dropDown.equals("OrbitalCommand")) {
+			action = new SCActionUpgradeBase(this, x, y, "OrbitalCommand");
+		}
+		else
+		{
+			if (dropDown.equals("PlanetaryFortress")) {
+				action = new SCActionUpgradeBase(this, x, y, "PlanetaryFortress");
+			}
+			else if (dropDown.equals("CalldownSupply")) {
+				action = new OCAction(OCAction.OCType.CALLDOWNSUPPLY,this, x, y);
+			}
+			else if (dropDown.equals("Refinery")) {
+				action = new SCActionBuildRefinery(this, x, y);
+			}
+			else if (dropDown.equals("TechLab")) {
+				action = new SCActionBuildAddon(this, x, y, dropDown);
+			}
+			else if (dropDown.equals("Reactor")) {
+				action = new SCActionBuildAddon(this, x, y, dropDown);
+			}
+			else if (dropDown.equals("LiftBarracks")) {
+				action = new SCActionLift(this, x, y, "Barracks");
+			}
+			else if (dropDown.equals("LiftFactory")) {
+				action = new SCActionLift(this, x, y, "Factory");
+			}
+			else if (dropDown.equals("LiftStarport")) {
+				action = new SCActionLift(this, x, y, "Starport");
+			}
+			else if (dropDown.equals("LandBarracks")) {
+				action = new SCActionLand(this, x, y, "Barracks");
+			}
+			else if (dropDown.equals("LandFactory")) {
+				action = new SCActionLand(this, x, y, "Factory");
+			}
+			else if (dropDown.equals("LandStarport")) {
+				action = new SCActionLand(this, x, y, "Starport");
+			}
+			else if (dropDown.equals("CommandCenter")) {
+				action = new SCActionBuildBase(this, x, y);
+			}
+			else if (dropDown.equals("Scan"))
+				action = new OCAction(OCAction.OCType.SCAN,this, x, y);
+			else
+				action = new SCActionBuilding(this, x, y, dropDown); 
+		}
+
+		this.actions.add(action);
+		reset();
+		play();
+
+		if (action.isComplete()) {
+			do {
+				action.addStartTime(-1);
+				reset();
+				play();
+				if (!action.isComplete())
+					action.addStartTime(1);
+				if (action.getStartTime() <= 0) break; 
+			}while (action.isComplete());
+		}
+		else
+		{
+			action.setStartTime(this.lastTime);
+		}
+		x = action.getStartTime();
+		int size = this.actions.size();
+
+		int end = x + dur;
+		boolean space = false;
+
+		while (!space) {
+			space = true;
+			for (int i = 0; i < size - 1; i++) {
+				SCAction action2 = (SCAction)this.actions.get(i);
+				int x2 = action2.getStartTime();
+				int end2 = action2.getStartTime() + action2.getDuration();
+				if (action2.getY() == y) {
+					if ((x <= x2) && (x2 < end) && (end <= end2))
+						space = false;
+					else if ((x2 <= x) && (x < end2) && (end2 <= end))
+						space = false;
+					else if ((x < x2) && (end2 < end))
+						space = false;
+					else if ((x2 < x) && (end < end2)) {
+						space = false;
 					}
 				}
 			}
-			if(!space) {
+			if (!space) {
 				y++;
 			}
 		}
 		action.setY(y);
-
 	}
 
-	public void addBuildingAction(String dropDown) {
-		int x=maxTime-1;
-		int y=1;
+	public void addResearchAction(String dropDown)
+	{
+		int x = this.maxTime - 1;
+		int y = 1;
 		int dur = getTime(dropDown);
-		//System.out.println(dropDown);
 		SCAction action;
-		if(dropDown.equals("OrbitalCommand")) {
-			action = new SCActionUpgradeBase(this, x, y, "OrbitalCommand");
-		} else if(dropDown.equals("CalldownSupply")) {
-			action = new SCActionCalldownSupply(this, x, y);
-		} else if(dropDown.equals("Refinery")) {
-			action = new SCActionBuildRefinery(this, x, y);
-		} else if(dropDown.equals("TechLab")) {
-			action = new SCActionBuildAddon(this, x, y, dropDown);
-		} else if(dropDown.equals("Reactor")) {
-			action = new SCActionBuildAddon(this, x, y, dropDown);
-		} else if(dropDown.equals("LiftBarracks")) {
-			action = new SCActionLift(this, x, y, "Barracks");
-		} else if(dropDown.equals("LiftFactory")) {
-			action = new SCActionLift(this, x, y, "Factory");
-		} else if(dropDown.equals("LiftStarport")) {
-			action = new SCActionLift(this, x, y, "Starport");
-		} else if(dropDown.equals("LandBarracks")) {
-			action = new SCActionLand(this, x, y, "Barracks");
-		} else if(dropDown.equals("LandFactory")) {
-			action = new SCActionLand(this, x, y, "Factory");
-		} else if(dropDown.equals("LandStarport")) {
-			action = new SCActionLand(this, x, y, "Starport");
-		} else {
-			action = new SCActionBuilding(this, x, y, dropDown);
+		if(dropDown.equals("Nuke")){
+			action = new SCActionBuildAddon(this,x,y,dropDown);
+		}else{
+			action = new SCActionResearch(this, x, y, dropDown);
 		}
+		this.actions.add(action);
+		reset();
+		play();
 
-		actions.add(action);
-		this.reset();
-		this.play();
-
-		if(action.isComplete()) {
-			while(action.getStartTime()>0 && action.isComplete()) {
+		if (action.isComplete()) {
+			do {
 				action.addStartTime(-1);
-				this.reset();
-				this.play();
-				if(!action.isComplete()) {
+				reset();
+				play();
+				if (!action.isComplete())
 					action.addStartTime(1);
-				}
-			}
-		} else {
-			action.setStartTime(lastTime);
+				if (action.getStartTime() <= 0) break; 
+			}while (action.isComplete());
+		}
+		else
+		{
+			action.setStartTime(this.lastTime);
 		}
 		x = action.getStartTime();
-		int size = actions.size();
-		int x2;
-		int end2;
-		//if(markY>=0) {
-		//	y = markY;
-		//}
-		int end = x+dur;
+		int size = this.actions.size();
+
+		int end = x + dur;
 		boolean space = false;
-		SCAction action2;
-		while(!space) {
-			space=true;
-			for(int i = 0; i < size-1;i++) {
-				action2 = actions.get(i);
-				x2=action2.getStartTime();
-				end2=action2.getStartTime()+action2.getDuration();
-				if(action2.getY() == y) {
-					if(x <= x2 && x2<end && end<=end2) {
-						space=false;
-					} else if(x2<=x && x<end2 && end2<=end) {
-						space=false;
-					} else if(x<x2 && end2<end) {
-						space=false;
-					} else if(x2<x && end<end2) {
-						space=false;
-					} 
+
+		while (!space) {
+			space = true;
+			for (int i = 0; i < size - 1; i++) {
+				SCAction action2 = (SCAction)this.actions.get(i);
+				int x2 = action2.getStartTime();
+				int end2 = action2.getStartTime() + action2.getDuration();
+				if (action2.getY() == y) {
+					if ((x <= x2) && (x2 < end) && (end <= end2))
+						space = false;
+					else if ((x2 <= x) && (x < end2) && (end2 <= end))
+						space = false;
+					else if ((x < x2) && (end2 < end))
+						space = false;
+					else if ((x2 < x) && (end < end2)) {
+						space = false;
+					}
 				}
 			}
-			if(!space) {
+			if (!space) {
 				y++;
 			}
 		}
 		action.setY(y);
-
-	}
-	
-
-
-	public void addResearchAction(String dropDown) {
-		int x=maxTime-1;
-		int y=1;
-		int dur = getTime(dropDown);
-		//System.out.println(dropDown);
-		SCAction action;
-		
-		action = new SCActionResearch(this, x, y, dropDown);
-
-		actions.add(action);
-		this.reset();
-		this.play();
-
-		if(action.isComplete()) {
-			while(action.getStartTime()>0 && action.isComplete()) {
-				action.addStartTime(-1);
-				this.reset();
-				this.play();
-				if(!action.isComplete()) {
-					action.addStartTime(1);
-				}
-			}
-		} else {
-			action.setStartTime(lastTime);
-		}
-		x = action.getStartTime();
-		int size = actions.size();
-		int x2;
-		int end2;
-		//if(markY>=0) {
-		//	y = markY;
-		//}
-		int end = x+dur;
-		boolean space = false;
-		SCAction action2;
-		while(!space) {
-			space=true;
-			for(int i = 0; i < size-1;i++) {
-				action2 = actions.get(i);
-				x2=action2.getStartTime();
-				end2=action2.getStartTime()+action2.getDuration();
-				if(action2.getY() == y) {
-					if(x <= x2 && x2<end && end<=end2) {
-						space=false;
-					} else if(x2<=x && x<end2 && end2<=end) {
-						space=false;
-					} else if(x<x2 && end2<end) {
-						space=false;
-					} else if(x2<x && end<end2) {
-						space=false;
-					} 
-				}
-			}
-			if(!space) {
-				y++;
-			}
-		}
-		action.setY(y);
-
 	}
 
-
-
-	public boolean save() {
-		String xml;
-		SCAction action;
-		xml="<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
-		xml+="<Actions>\n";
-		int s = actions.size();
-		int index=-1;
-		for(int i = 0;i < s ; i++) {
-			action = actions.get(i);
+	public boolean save(File file)
+	{
+		String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+		xml = xml + "<Actions>\n";
+		int s = this.actions.size();
+		int index = -1;
+		for (int i = 0; i < s; i++) {
+			SCAction action = (SCAction)this.actions.get(i);
 			String c = action.getClass().toString();
-			index=c.lastIndexOf(".");
-			c = c.substring(index+1, c.length());
-			xml+="  <Action Class=\""+c+"\">\n";
-			xml+="    <Name>"+action.getName()+"</Name>\n";
-			xml+="    <StartTime>"+action.getStartTime()+"</StartTime>\n";
-			xml+="    <Y>"+action.getY()+"</Y>\n";
-			//xml+="    <Duration>"+action.getDuration()+"</Duration>\n";
-			xml+="    <Option>"+action.getOption()+"</Option>\n";
-			xml+="  </Action>\n";
-		}
-		xml+="</Actions>\n";
+			index = c.lastIndexOf(".");
+			c = c.substring(index + 1, c.length());
+			xml = xml + "  <Action Class=\"" + c + "\">\n";
+			xml = xml + "    <Name>" + action.getName() + "</Name>\n";
+			xml = xml + "    <StartTime>" + action.getStartTime() + "</StartTime>\n";
+			xml = xml + "    <Y>" + action.getY() + "</Y>\n";
 
-		//return xml;
-		// fileoutput stream xml
+			xml = xml + "    <Option>" + action.getOption() + "</Option>\n";
+			xml = xml + "  </Action>\n";
+		}
+		xml = xml + "</Actions>\n";
+
 		BufferedWriter writer = null;
 		try {
-			writer = new BufferedWriter( new FileWriter(filename));
+			writer = new BufferedWriter(new FileWriter(file));
 			writer.write(xml);
 		} catch (IOException e) {
 			System.out.println("Can't write XML to file - " + e);
 			return false;
 		} finally {
 			try {
-				if(writer!=null) {
+				if (writer != null)
 					writer.close();
-				}
-			} catch(IOException e) {
+			}
+			catch (IOException e) {
 				System.out.println("Something else didn't work - " + e);
 				return false;
 			}
@@ -824,85 +778,98 @@ public class Model {
 
 		return true;
 	}
-	public boolean load() {
-		Document doc;
+
+	public boolean load(File file) {
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-		DocumentBuilder db;
-		try {
-			db = dbf.newDocumentBuilder();
-			doc = db.parse(filename);
-		} catch (ParserConfigurationException e) {
-			// TODO Auto-generated catch block
-			//e.printStackTrace();
-			return false;
-		}catch (SAXException e) {
-			// TODO Auto-generated catch block
-			//e.printStackTrace();
-			return false;
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			//e.printStackTrace();
+		Document doc;
+		try
+		{
+			DocumentBuilder db = dbf.newDocumentBuilder();
+			doc = db.parse(file);
+		}
+		catch (ParserConfigurationException e)
+		{
 			return false;
 		}
-		actions.clear();
+		catch (SAXException e)
+		{
+			return false;
+		}
+		catch (IOException e)
+		{
+			return false;
+		}
+		DocumentBuilder db;
+		this.actions.clear();
 		Element docEle = doc.getDocumentElement();
 		NodeList nl = docEle.getElementsByTagName("Action");
-		if(nl != null && nl.getLength() > 0) {
+		if ((nl != null) && (nl.getLength() > 0)) {
 			int size = nl.getLength();
-			for(int i = 0; i < size;i++) {
+			for (int i = 0; i < size; i++) {
 				Element element = (Element)nl.item(i);
-				actions.add(getActionFromXML(element));
+				this.actions.add(getActionFromXML(element));
 			}
 		}
 		return true;
 	}
 
-	public SCAction getActionFromXML(Element element) {
-
+	public SCAction getActionFromXML(Element element)
+	{
 		String c = element.getAttribute("Class");
-		int startTime = getIntValue(element,"StartTime");
-		int y = getIntValue(element,"Y");
-		//int duration = getIntValue(element, "Duration");
+		int startTime = getIntValue(element, "StartTime");
+		int y = getIntValue(element, "Y");
+
 		String name = getTextValue(element, "Name");
 		String option = getTextValue(element, "Option");
-		SCAction action=null;
-		if(c.equals("SCActionBuilding")) {
-			action = new SCActionBuilding(this, startTime, y, name);
-		} else if(c.equals("SCActionBuildRefinery")) {
+		SCAction action = null;
+		if (c.equals("SCActionBuilding"))
+			action = new SCActionBuilding(this, startTime, y, name, option);
+		else if (c.equals("SCActionBuildRefinery"))
 			action = new SCActionBuildRefinery(this, startTime, y);
-		} else if(c.equals("SCActionBuildSCV")) {
+		else if (c.equals("SCActionBuildSCV"))
 			action = new SCActionBuildSCV(this, startTime, y);
-		} else if(c.equals("SCActionBuildUnit")) {
+		else if (c.equals("SCActionBuildUnit"))
 			action = new SCActionBuildUnit(this, startTime, y, name);
-		} else if(c.equals("SCActionTransferToGas")) {
+		else if (c.equals("SCActionTransferToGas"))
 			action = new SCActionTransferToGas(this, startTime, y);
-		} else if(c.equals("SCActionTransferOffGas")) {
-			//action = new SCActionTransferOffGas(this, startTime, y);
-		} else if(c.equals("SCActionMule")) {
-			action = new SCActionMule(this, startTime, y);
-		} else if(c.equals("SCActionCalldownSupply")) {
-			action = new SCActionCalldownSupply(this, startTime, y);
-		} else if(c.equals("SCActionUpgradeBase")) {
-			action = new SCActionUpgradeBase(this, startTime, y, name);
-		} else if(c.equals("SCActionBuildAddon")) {
-			action = new SCActionBuildAddon(this, startTime, y, name, option);
-		} else if(c.equals("SCActionLift")) {
-			action = new SCActionLift(this, startTime, y, name, option);
-		} else if(c.equals("SCActionLand")) {
-			action = new SCActionLand(this, startTime, y, name, option);
-		} else if(c.equals("SCActionResearch")) {
-			action = new SCActionResearch(this, startTime, y, name);
-		} else {
-			System.out.println("Unknown class type = " + c);
+		else if (!c.equals("SCActionTransferOffGas"))
+		{
+			if (c.equals("OCAction")){
+				if (name.equals("Mule")){
+					action = new OCAction(OCAction.OCType.MULE,this, startTime, y);
+				}else if(name.equals("CalldownSupply")){
+					action = new OCAction(OCAction.OCType.CALLDOWNSUPPLY,this, startTime, y);
+				}else if(name.equals("Scan")){
+					action = new OCAction(OCAction.OCType.SCAN,this, startTime, y);
+				}
+			}
+			else if (c.equals("SCActionUpgradeBase"))
+				action = new SCActionUpgradeBase(this, startTime, y, name);
+			else if (c.equals("SCActionBuildAddon"))
+				action = new SCActionBuildAddon(this, startTime, y, name, option);
+			else if (c.equals("SCActionLift"))
+				action = new SCActionLift(this, startTime, y, name, option);
+			else if (c.equals("SCActionLand"))
+				action = new SCActionLand(this, startTime, y, name, option);
+			else if (c.equals("SCActionResearch"))
+				action = new SCActionResearch(this, startTime, y, name);
+			else if (c.equals("SCActionBuildBase"))
+				action = new SCActionBuildBase(this, startTime, y);
+			else if (c.equals("SCActionMaynard"))
+				action = new SCActionMaynard(this, startTime, y);
+			else if (c.equals("SCActionScout"))
+				action = new SCActionScout(this, startTime, y, option);
+			else
+				System.out.println("Unknown class type = " + c);
 		}
 		return action;
-
 	}
 
-	private String getTextValue(Element ele, String tagName) {
+	private String getTextValue(Element ele, String tagName)
+	{
 		String textVal = null;
 		NodeList nl = ele.getElementsByTagName(tagName);
-		if(nl != null && nl.getLength() > 0) {
+		if ((nl != null) && (nl.getLength() > 0)) {
 			Element el = (Element)nl.item(0);
 			textVal = el.getFirstChild().getNodeValue();
 		}
@@ -910,182 +877,254 @@ public class Model {
 		return textVal;
 	}
 
-	private int getIntValue(Element ele, String tagName) {
-		//in production application you would catch the exception
-		int r=0;
+	private int getIntValue(Element ele, String tagName)
+	{
+		int r = 0;
 		try {
-			r=Integer.parseInt(getTextValue(ele,tagName));
-		} catch(NumberFormatException e) {
-			r=0;
+			r = Integer.parseInt(getTextValue(ele, tagName));
+		} catch (NumberFormatException e) {
+			r = 0;
 		}
 		return r;
 	}
 
-	public boolean buildSCV() {
-
-		int selectedBase=-1;
-		int leastSCVs=200;
-		for(int i = 0; i < bases.size(); i++ ) {
-			if(bases.get(i).isComplete() && bases.get(i).getQueueLength()==0 && bases.get(i).scvCount()<leastSCVs) {
-				leastSCVs = bases.get(i).scvCount();
+	public boolean buildSCV()
+	{
+		int selectedBase = -1;
+		int leastSCVs = 200;
+		for (int i = 0; i < this.bases.size(); i++) {
+			if ((((Base)this.bases.get(i)).isComplete()) && (((Base)this.bases.get(i)).getQueueLength() == 0) && (((Base)this.bases.get(i)).scvCount() < leastSCVs)) {
+				leastSCVs = ((Base)this.bases.get(i)).scvCount();
 				selectedBase = i;
 			}
 		}
-		if(selectedBase>=0) {
-			//System.out.println(printTime() + "   <Model> Base = "+selectedBase);
-			if(bases.get(selectedBase).addSCVtoQueue()) {
-				//System.out.println(printTime() + "   <Model:buildSCV> Adding SCV to base queue");
-				return true;
-			} else {
-				return false;
-			}
-		} else {
-			return false;
+		if (selectedBase >= 0)
+		{
+			return ((Base)this.bases.get(selectedBase)).addSCVtoQueue();
 		}
+
+		return false;
 	}
 
-	public boolean upgradeBase(String name) {
-		int base=-1;
-		int i =0;
-		while(i < bases.size() && base<0) {
-			if(bases.get(i).isComplete() && bases.get(i).getName().equals("CommandCenter") && bases.get(i).getQueueLength()==0) {
-				base=i;
+	public boolean upgradeBase(String name)
+	{
+		int base = -1;
+		int i = 0;
+		while ((i < this.bases.size()) && (base < 0)) {
+			if ((((Base)this.bases.get(i)).isComplete()) && (((Base)this.bases.get(i)).getName().equals("CommandCenter")) && (((Base)this.bases.get(i)).getQueueLength() == 0)) {
+				base = i;
 			}
 			i++;
 		}
-		if(base>=0) {
-			if(bases.get(base).upgrade(name)) {
+		if (base >= 0)
+		{
+			return ((Base)this.bases.get(base)).upgrade(name);
+		}
+
+		return false;
+	}
+
+	public boolean makeBuilding(String name, String addon)
+	{
+		boolean addonFound = false;
+		int c = -1;
+
+		int i = 0;
+		if (addon.equals("none")) {
+			if (this.objects.add(new SCStructure(this, name))) {
+				spendMinerals(getMineralCost(name));
+				spendGas(getGasCost(name));
 				return true;
-			} else {
+			}
+			return false;
+		}
+
+		do
+		{
+			if ((this.objects.get(i) instanceof SCAddon)) {
+				SCAddon a = (SCAddon)this.objects.get(i);
+				if ((a.getName().equals(addon)) && (a.getQueueLength() == 0) && (a.isAvailable()) && (a.isComplete()) && (a.getAttachedTo().equals(""))) {
+					c = i;
+					addonFound = true;
+				}
+			}
+			i++;
+		}
+		while ((i < this.objects.size()) && (!addonFound));
+
+		if (addonFound) {
+			SCStructure s = new SCStructure(this, name);
+			s.setAddonName(addon);
+			if (this.objects.add(s)) {
+				spendMinerals(getMineralCost(name));
+				spendGas(getGasCost(name));
+				if (((SCObject)this.objects.get(c)).attach(name)) {
+					return true;
+				}
+				System.out.println(printTime() + "   <Model:makeBuilding> Attach addon failed");
 				return false;
 			}
-		} else {
+
 			return false;
 		}
+
+		System.out.println(printTime() + "   <Model:makeBuilding> AddonFound = " + addonFound);
+		return false;
 	}
 
-	public boolean makeBuilding(String name) {
-		if(objects.add(new SCStructure(this, name))) {
-			spendMinerals(getMineralCost(name));
-			spendGas(getGasCost(name));
-			return true;
-		} else {
-			return false;
-		}
-	}
-
-	public boolean buildRefinery() {
+	public boolean buildRefinery()
+	{
 		boolean f = false;
 		int b = 0;
-		while(!f && b < bases.size()) {
-			if(bases.get(b).freeGeysers()>0) {
+		while ((!f) && (b < this.bases.size())) {
+			if (((Base)this.bases.get(b)).freeGeysers() > 0)
 				f = true;
-			} else {
+			else {
 				b++;
 			}
 		}
-		if(!f) {
+		if (!f) {
 			System.out.println(printTime() + "   <Model:buildRefinery> Couldn't find a base with free geysers");
-		} else {
-			if(bases.get(b).addRefinery()) {
-				return true;
-			} else {
-				return false;
-			}
 		}
-		return f;
+		else {
+			return ((Base)this.bases.get(b)).addRefinery();
+		}
 
+		return f;
 	}
 
-
-
-	public boolean mule() {
-		int most=0;
-		int baseFrom=-1; // where to use the energy
-		int baseTo=-1;   // where to drop the mule
-		for(int i = 0; i < bases.size(); i++) {
-			if(bases.get(i).getEnergy() > most) {
-				most = bases.get(i).getEnergy();
-				baseFrom=i;
+	public boolean mule()
+	{
+		int most = 0;
+		int baseFrom = -1;
+		int baseTo = -1;
+		for (int i = 0; i < this.bases.size(); i++) {
+			if (((Base)this.bases.get(i)).getEnergy() > most) {
+				most = ((Base)this.bases.get(i)).getEnergy();
+				baseFrom = i;
 			}
 		}
-		most=0;
-		for(int i = 0; i < bases.size(); i++) {
-			if(bases.get(i).remainingMinerals() > most) {
-				most = bases.get(i).remainingMinerals();
-				baseTo=i;
+		most = 0;
+		for (int i = 0; i < this.bases.size(); i++) {
+			if ((((Base)this.bases.get(i)).isComplete()) && (((Base)this.bases.get(i)).remainingMinerals() > most)) {
+				most = ((Base)this.bases.get(i)).remainingMinerals();
+				baseTo = i;
 			}
 		}
-		if(baseFrom>=0 && baseTo>=0) {
-			if(bases.get(baseTo).addMule()) {
-				//System.out.println(printTime() + "   <Model> Dropping Mule on Base " + baseTo + " using energy from base " + baseFrom);
-				bases.get(baseFrom).useEnergy(50);
+		if ((baseFrom >= 0) && (baseTo >= 0)) {
+			if (((Base)this.bases.get(baseTo)).addMule())
+			{
+				((Base)this.bases.get(baseFrom)).useEnergy(50);
 				return true;
-			} else {
-				System.out.println(printTime() + "   <Model> Couldn't complete base.addMule()");
-				return false;
 			}
-		} else {
-			System.out.println(printTime() + "   <Model> Couldn't find baseFrom && baseTo");
+
 			return false;
 		}
+
+		return false;
 	}
 
-	public boolean calldownSupply() {
-		int most=0;
-		int baseFrom=-1; // where to use the energy
-		int depot=-1;
-		boolean found=false;
-		for(int i = 0; i < bases.size(); i++) {
-			if(bases.get(i).getEnergy() > most) {
-				most = bases.get(i).getEnergy();
-				baseFrom=i;
+	public boolean calldownSupply()
+	{
+		int most = 0;
+		int baseFrom = -1;
+		int depot = -1;
+		boolean found = false;
+		for (int i = 0; i < this.bases.size(); i++) {
+			if (((Base)this.bases.get(i)).getEnergy() > most) {
+				most = ((Base)this.bases.get(i)).getEnergy();
+				baseFrom = i;
 			}
 		}
 		int i = 0;
-		while(i < objects.size() && !found) {
-			if(objects.get(i).getName().equals("SupplyDepot")) {
-				SCStructure s = (SCStructure)objects.get(i);
-				if(s.getSupply()<=8) {
-					depot=i;
-					found=true;
+		while ((i < this.objects.size()) && (!found)) {
+			if (((SCObject)this.objects.get(i)).getName().equals("SupplyDepot")) {
+				SCStructure s = (SCStructure)this.objects.get(i);
+				if (s.getSupply() <= 8) {
+					depot = i;
+					found = true;
 				}
 			}
 		}
-		if(found) {
-			((SCStructure)objects.get(depot)).setSupply(16);
+		if (found) {
+			((SCStructure)this.objects.get(depot)).setSupply(16);
 			addSupply(8);
-			bases.get(baseFrom).useEnergy(50);
+			((Base)this.bases.get(baseFrom)).useEnergy(50);
 			return true;
-		} else {
-			return false;
 		}
-
-
+		return false;
 	}
 
-	public boolean isFreeBase() {
+	public boolean scout(String option)
+	{
+		int duration = Integer.parseInt(option);
+		int most = 0;
+		int base = -1;
+		for (int i = 0; i < this.bases.size(); i++) {
+			if (((Base)this.bases.get(i)).scvCount() > 0) {
+				most = ((Base)this.bases.get(i)).scvCount();
+				base = i;
+			}
+		}
+		if (base >= 0) {
+			((Base)this.bases.get(base)).setSCVScouting(duration);
+			return true;
+		}
+		return false;
+	}
+
+	public boolean OCAction(OCAction.OCType action){
+		switch(action){
+		case MULE :
+			return mule();
+		case CALLDOWNSUPPLY :
+			return calldownSupply();
+		case SCAN :
+			return scan();
+		}
+		System.out.println("that isn't an action smokey");
+		return false;
+	}
+	public boolean scan()
+	{
+		int most = 0;
+		int baseFrom = -1;
+		for (int i = 0; i < this.bases.size(); i++) {
+			if (((Base)this.bases.get(i)).getEnergy() > most) {
+				most = ((Base)this.bases.get(i)).getEnergy();
+				baseFrom = i;
+			}
+		}
+		if (baseFrom >= 0) {
+			((Base)this.bases.get(baseFrom)).useEnergy(50);
+			return true;
+		}
+		return false;
+	}
+
+	public boolean isFreeBase()
+	{
 		boolean free = false;
-		for(int i = 0; i < bases.size(); i++) {
-			if(bases.get(i).isComplete() && bases.get(i).getQueueLength() == 0) {
-				free=true;
+		for (int i = 0; i < this.bases.size(); i++) {
+			if ((((Base)this.bases.get(i)).isComplete()) && (((Base)this.bases.get(i)).getQueueLength() == 0)) {
+				free = true;
 			}
 		}
 		return free;
 	}
 	public boolean hasEnergy(int e) {
 		boolean energy = false;
-		for (int i = 0; i < bases.size(); i++) {
-			if (bases.get(i).getEnergy() >= e) {
+		for (int i = 0; i < this.bases.size(); i++) {
+			if (((Base)this.bases.get(i)).getEnergy() >= e) {
 				energy = true;
 			}
 		}
 		return energy;
 	}
-	public boolean isObjectComplete(String name) { // check to see if a building is complete
+	public boolean isObjectComplete(String name) {
 		boolean ready = false;
-		for(int i = 0; i < objects.size(); i++) {
-			if(objects.get(i).isComplete() && objects.get(i).getName().equals(name)) {
+		for (int i = 0; i < this.objects.size(); i++) {
+			if ((((SCObject)this.objects.get(i)).isComplete()) && (((SCObject)this.objects.get(i)).getName().equals(name))) {
 				ready = true;
 			}
 		}
@@ -1094,59 +1133,53 @@ public class Model {
 	public boolean alreadyStarted(String name) {
 		boolean found = false;
 		int i = 0;
-		while(i < objects.size() && !found) {
-			if(objects.get(i).getName().equals(name)) {
-				found=true;
-			} else if(objects.get(i) instanceof SCStructure) {
-				if(((SCStructure)objects.get(i)).getConstructingName().equals(name)) {
-					found=true;
-				}
+		while ((i < this.objects.size()) && (!found)) {
+			if (((SCObject)this.objects.get(i)).getName().equals(name))
+				found = true;
+			else if (((this.objects.get(i) instanceof SCStructure)) && 
+					(((SCStructure)this.objects.get(i)).getConstructingName().equals(name))) {
+				found = true;
 			}
+
 			i++;
 		}
 		return found;
 	}
 
+	public boolean hasAddon(String build, String tech)
+	{
+		boolean foundBuilding = false;
+		boolean foundTech = false;
 
-	public boolean hasAddon(String build, String tech) {
-		boolean foundBuilding=false;
-		boolean foundTech=false;
-		SCStructure building;
-		SCAddon addon;
 		int i = 0;
-		while((!foundTech || !foundBuilding) && i < objects.size()) {
-			if(objects.get(i).getName().equals(build)) {
-				building = (SCStructure)objects.get(i);
-				if(building.getAddonName().equals(tech)) {
-					foundBuilding=true;
-					//					System.out.println(printTime() + "   <Model> Found building " + i);
+		while (((!foundTech) || (!foundBuilding)) && (i < this.objects.size())) {
+			if (((SCObject)this.objects.get(i)).getName().equals(build)) {
+				SCStructure building = (SCStructure)this.objects.get(i);
+				if (building.getAddonName().equals(tech)) {
+					foundBuilding = true;
 				}
 			}
-			if(objects.get(i).getName().equals(tech)) {
-				addon = (SCAddon)objects.get(i);
-				if(addon.getAttachedTo().equals(build)) {
-					foundTech=true;
-					//					System.out.println(printTime() + "   <Model> Found addon " + i);
+
+			if (((SCObject)this.objects.get(i)).getName().equals(tech)) {
+				SCAddon addon = (SCAddon)this.objects.get(i);
+				if (addon.getAttachedTo().equals(build)) {
+					foundTech = true;
 				}
 			}
+
 			i++;
 		}
-		if(foundBuilding && foundTech) {
-			return true;
-		} else {
-			return false;
-		}
 
-
-
+		return (foundBuilding) && (foundTech);
 	}
 
-	public boolean isAvailable(String name) { // check to see if a building is complete
+	public boolean isAvailable(String name)
+	{
 		boolean ready = false;
 		int i = 0;
-		while(i < objects.size() && !ready) {
-			if(objects.get(i).isComplete() && objects.get(i).getName().equals(name) && objects.get(i).isAvailable()) {
-				ready=true;
+		while ((i < this.objects.size()) && (!ready)) {
+			if ((((SCObject)this.objects.get(i)).isComplete()) && (((SCObject)this.objects.get(i)).getName().equals(name)) && (((SCObject)this.objects.get(i)).isAvailable())) {
+				ready = true;
 			}
 			i++;
 		}
@@ -1154,118 +1187,111 @@ public class Model {
 	}
 
 	public boolean setSCVBuilding(int duration) {
-		int most=0;
-		int base=-1;
-		for(int i = 0; i < bases.size(); i++) {
-			if(bases.get(i).scvCount() > most) {
-				most = bases.get(i).scvCount();
-				base =i;
+		int most = 0;
+		int base = -1;
+		for (int i = 0; i < this.bases.size(); i++) {
+			if (((Base)this.bases.get(i)).scvCount() > most) {
+				most = ((Base)this.bases.get(i)).scvCount();
+				base = i;
 			}
 		}
-		if(base>=0) {
-			if(bases.get(base).setSCVBuilding(duration)) {
-				//System.out.println(printTime() + "   <Model> Preaction");
-				return true;
-			} else {
-				return false;
-			}
-		} else {
-			return false;
+		if (base >= 0)
+		{
+			return ((Base)this.bases.get(base)).setSCVBuilding(duration);
 		}
 
+		return false;
 	}
 
-	public boolean addUnitToQueue(String name) {
+	public boolean addUnitToQueue(String name)
+	{
 		String build = getBuild(name);
 		String tech = getTech(name);
 		int i = 0;
-		int building=-1;
+		int building = -1;
 		boolean found = false;
-		while(!found && i < objects.size()) {
-			if(objects.get(i).getName().equals(build) && objects.get(i).isComplete() && objects.get(i).isAvailable()) {
-				SCStructure s = (SCStructure)objects.get(i);
-				if(s.getQueueLength()==0) {
-					if(tech!=null) {
-						if(s.getAddonName().equals(tech)) {
-							found=true;
-							building=i;
+		while ((!found) && (i < this.objects.size())) {
+			if ((((SCObject)this.objects.get(i)).getName().equals(build)) && (((SCObject)this.objects.get(i)).isComplete()) && (((SCObject)this.objects.get(i)).isAvailable())) {
+				SCStructure s = (SCStructure)this.objects.get(i);
+				if (s.getQueueLength() == 0) {
+					if (tech != null) {
+						if (s.getAddonName().equals(tech)) {
+							found = true;
+							building = i;
 						}
 					} else {
-						found=true;
-						building=i;
+						found = true;
+						building = i;
 					}
 				}
 			}
 			i++;
 		}
-		if(found) {
-			if(((SCStructure)objects.get(building)).addObjectToQueue(name)) {
-				return true;
-			} else {
-				return false;
-			}
-		} else {
-			return false;
+		if (found)
+		{
+			return ((SCStructure)this.objects.get(building)).addObjectToQueue(name);
 		}
 
+		return false;
 	}
-	
-	public boolean addResearch(String name) {
-		String build = getBuild(name);  // eg ebay for +1, barracks for stimpack
-		String tech = getTech(name);    // eg techlab for stimpack, null for none addon research
-		boolean buildingFound=false;
-		boolean addonFound=false;
-		int i=0;
-		int b=-1;
-		int c=-1;
-		int size = objects.size();
-		if(tech==null) {
-			while(i < size) {
-				if(objects.get(i).getName().equals(build) && objects.get(i).isAvailable()) {
-					buildingFound=true;
-					b=i;
+
+	public boolean addResearch(String name)
+	{
+		String build = getBuild(name);
+		String tech = getTech(name);
+		boolean buildingFound = false;
+		boolean addonFound = false;
+		int i = 0;
+		int b = -1;
+		int c = -1;
+		int size = this.objects.size();
+		if (tech == null)
+		{
+			while (i < size) {
+				if ((((SCObject)this.objects.get(i)).getName().equals(build)) && (((SCObject)this.objects.get(i)).isAvailable())) {
+					buildingFound = true;
+					b = i;
 				}
 				i++;
 			}
-			if(buildingFound) {
-				if(((SCStructure)objects.get(b)).addObjectToQueue(name)) {
-					return true;
-				} else {
-					return false;
-				}
+			if (buildingFound)
+			{
+				return ((SCStructure)this.objects.get(b)).addObjectToQueue(name);
 			}
-		} else {
-			//System.out.println("research at an " + tech + " on a "+build);
-			while(i < size) {
-				if(objects.get(i).getName().equals(build)) {
-					if(((SCStructure)objects.get(i)).getAddonName().equals(tech)) {
-						buildingFound=true;
-						b=i;
-					}
-				}
-				if(objects.get(i).getName().equals(tech) && objects.get(i).isAvailable()) {
-					if(((SCAddon)objects.get(i)).getAttachedTo().equals(build)) {
-						addonFound=true;
-						c=i;
-					}
-				}
-				i++;
-			}
-			if(buildingFound && addonFound) {
-				if(((SCAddon)objects.get(c)).addObjectToQueue(name)) {
-					return true;
-				} else {
-					return false;
-				}
-			}
-			
+
 		}
+		else
+		{
+			do
+			{
+				if ((((SCObject)this.objects.get(i)).getName().equals(build)) && (((SCObject)this.objects.get(i)).isComplete()) && 
+						(((SCStructure)this.objects.get(i)).getAddonName().equals(tech))) {
+					buildingFound = true;
+					b = i;
+				}
+
+				if ((((SCObject)this.objects.get(i)).getName().equals(tech)) && (((SCObject)this.objects.get(i)).isAvailable()) && 
+						(((SCAddon)this.objects.get(i)).getAttachedTo().equals(build))) {
+					addonFound = true;
+					c = i;
+				}
+
+				i++;
+			}
+			while (i < size);
+
+			if ((buildingFound) && (addonFound))
+			{
+				return ((SCAddon)this.objects.get(c)).addObjectToQueue(name);
+			}
+
+		}
+
 		return true;
-		
 	}
 
 	public int getmX1() {
-		return mX1;
+		return this.mX1;
 	}
 
 	public void setmX1(int mX1) {
@@ -1273,7 +1299,7 @@ public class Model {
 	}
 
 	public int getmY1() {
-		return mY1;
+		return this.mY1;
 	}
 
 	public void setmY1(int mY1) {
@@ -1281,7 +1307,7 @@ public class Model {
 	}
 
 	public int getmX2() {
-		return mX2;
+		return this.mX2;
 	}
 
 	public void setmX2(int mX2) {
@@ -1289,614 +1315,750 @@ public class Model {
 	}
 
 	public int getmY2() {
-		return mY2;
+		return this.mY2;
 	}
 
 	public void setmY2(int mY2) {
 		this.mY2 = mY2;
 	}
 
+	public boolean buildBase() {
+		spendMinerals(getMineralCost("CommandCenter"));
+		Base b = new Base(this);
+		this.bases.add(b);
+		return true;
+	}
+
+	public int completedBases() {
+		int b = 0;
+		for (int i = 0; i < this.bases.size(); i++) {
+			if (((Base)this.bases.get(i)).isComplete()) {
+				b++;
+			}
+		}
+		return b;
+	}
+
 	public boolean buildAddon(String name, String building) {
 		int i = 0;
-		int b =-1;
-		boolean found=false;
-		SCStructure s;
-		while(i < objects.size() && !found) {
-			if(objects.get(i) instanceof SCStructure) {
-				s = (SCStructure)objects.get(i);
-				if(s.getName().equals(building) && s.getQueueLength()==0 && s.isAvailable() && s.getAddonName().equals("")) {
+		int b = -1;
+		boolean found = false;
+
+		while ((i < this.objects.size()) && (!found)) {
+			if ((this.objects.get(i) instanceof SCStructure)) {
+				SCStructure s = (SCStructure)this.objects.get(i);
+				if ((s.getName().equals(building)) && (s.getQueueLength() == 0) && (s.isAvailable()) && (s.getAddonName().equals(""))) {
 					b = i;
-					found=true;
+					found = true;
 				}
 			}
 			i++;
 		}
-		if(found) {
-			s = (SCStructure)objects.get(b);
+		if (found) {
+			SCStructure s = (SCStructure)this.objects.get(b);
 			s.buildAddon(name);
 			SCAddon a = new SCAddon(this, name);
 			a.setAttachedTo(building);
-			objects.add(a);
-			//System.out.println(printTime() + "   <Model> Adding " + a.getName() + " to list");
-		} 		
+			this.objects.add(a);
+		}
+
 		return found;
 	}
 
 	public boolean freeAddonExists(String addon) {
-		boolean addonFound=false;
-		SCAddon a;
-		int i = 0;
-		while(i < objects.size() && !addonFound) {
-			if(objects.get(i) instanceof SCAddon) {
-				a = (SCAddon)objects.get(i);
-				if(a.getName().equals(addon) && a.getQueueLength()==0 &&
-						a.isComplete() && a.getAttachedTo().equals("")) {
-					addonFound=true;
+		boolean addonFound = false;
 
+		int i = 0;
+		while ((i < this.objects.size()) && (!addonFound)) {
+			if ((this.objects.get(i) instanceof SCAddon)) {
+				SCAddon a = (SCAddon)this.objects.get(i);
+				if ((a.getName().equals(addon)) && (a.getQueueLength() == 0) && 
+						(a.isComplete()) && (a.getAttachedTo().equals(""))) {
+					addonFound = true;
 				}
 			}
+
 			i++;
 		}
 		return addonFound;
-
 	}
 
-	public boolean lift(String name, String addon) {
-		System.out.println(printTime() + "   <Model> Lift "+name+" off of "+addon);
+	public boolean lift(String name, String addon)
+	{
 		int i = 0;
-		int b =-1;
-		int c =-1;
-		boolean buildingFound=false;
-		boolean addonFound=false;
-		SCStructure s;
-		SCAddon a;
-		if(addon.equals("none")) {
-			while(i < objects.size() && !buildingFound) {
-				if(objects.get(i) instanceof SCStructure) {
-					s = (SCStructure)objects.get(i);
-					if(s.getName().equals(name) && s.isComplete() && s.getQueueLength()==0 &&
-							s.isAvailable() && s.getAddonName().equals("") && !s.isLifted()) {
+		int b = -1;
+		int c = -1;
+		boolean buildingFound = false;
+		boolean addonFound = false;
+
+		if (addon.equals("none")) {
+			while ((i < this.objects.size()) && (!buildingFound)) {
+				if ((this.objects.get(i) instanceof SCStructure)) {
+					SCStructure s = (SCStructure)this.objects.get(i);
+					if ((s.getName().equals(name)) && (s.isComplete()) && (s.getQueueLength() == 0) && 
+							(s.isAvailableToLift()) && (s.getAddonName().equals("")) && (!s.isLifted())) {
 						b = i;
-						buildingFound=true;
+						buildingFound = true;
 					}
 				}
 				i++;
 			}
 
-			if(buildingFound ) {
-				if(objects.get(b).lift()) {
+			if (buildingFound) {
+				if (((SCObject)this.objects.get(b)).lift()) {
 					return true;
-				} else {
-					System.out.println(printTime() + "   <Model:lift> Lift structure failed");
-					return false;
 				}
-			} else {
-				System.out.println(printTime() + "   <Model:lift> BuildingFound = " + buildingFound + " AddonFound = " + addonFound);
+				System.out.println(printTime() + "   <Model:lift> Lift structure failed");
 				return false;
 			}
-		} else {
-			while(i < objects.size() && (!buildingFound || !addonFound)) {
-				if(objects.get(i) instanceof SCStructure) {
-					s = (SCStructure)objects.get(i);
-					if(s.getName().equals(name) && s.isComplete() && s.getQueueLength()==0 &&
-							s.isAvailable() && s.getAddonName().equals(addon) && !s.isLifted()) {
-						b = i;
-						buildingFound=true;
-					}
-				}
-				if(objects.get(i) instanceof SCAddon) {
-					a = (SCAddon)objects.get(i);
-					if(a.getName().equals(addon) && a.getQueueLength()==0 && a.isAvailable() &&
-							a.isComplete() && a.getAttachedTo().equals(name)) {
-						c = i;
-						addonFound=true;
 
-					}
+			System.out.println(printTime() + "   <Model:lift> BuildingFound = " + buildingFound + " AddonFound = " + addonFound);
+			return false;
+		}
+		do
+		{
+			if ((this.objects.get(i) instanceof SCStructure)) {
+				SCStructure s = (SCStructure)this.objects.get(i);
+				if ((s.getName().equals(name)) && (s.isComplete()) && (s.getQueueLength() == 0) && 
+						(s.isAvailableToLift()) && (s.getAddonName().equals(addon)) && (!s.isLifted())) {
+					b = i;
+					buildingFound = true;
 				}
-				i++;
+			}
+			if ((this.objects.get(i) instanceof SCAddon)) {
+				SCAddon a = (SCAddon)this.objects.get(i);
+				if ((a.getName().equals(addon)) && (a.getQueueLength() == 0) && (a.isAvailable()) && 
+						(a.isComplete()) && (a.getAttachedTo().equals(name))) {
+					c = i;
+					addonFound = true;
+				}
 			}
 
-			if(buildingFound && addonFound) {
-				if(objects.get(b).lift()) {
-					if(objects.get(c).detach()) {
-						return true;
-					} else {
-						System.out.println(printTime() + "   <Model:lift> Detach addon failed");
-						return false;
-					}
-				} else {
-					System.out.println(printTime() + "   <Model:lift> Lift structure failed");
-					return false;
+			i++;
+		}
+		while ((i < this.objects.size()) && ((!buildingFound) || (!addonFound)));
+
+		if ((buildingFound) && (addonFound)) {
+			if (((SCObject)this.objects.get(b)).lift()) {
+				if (((SCObject)this.objects.get(c)).detach()) {
+					return true;
 				}
-			} else {
-				System.out.println(printTime() + "   <Model:lift> BuildingFound = " + buildingFound + " AddonFound = " + addonFound);
+				System.out.println(printTime() + "   <Model:lift> Detach addon failed");
 				return false;
 			}
+
+			System.out.println(printTime() + "   <Model:lift> Lift structure failed");
+			return false;
 		}
 
+		System.out.println(printTime() + "   <Model:lift> BuildingFound = " + buildingFound + " AddonFound = " + addonFound);
+		return false;
 	}
 
-	public boolean land(String name, String addon) {
-		System.out.println(printTime() + "   <Model> Land "+name+" on "+addon);
+	public boolean land(String name, String addon)
+	{
 		int i = 0;
-		int b =-1;
-		int c =-1;
-		boolean buildingFound=false;
-		boolean addonFound=false;
-		SCStructure s;
-		SCAddon a;
-		if(addon.equals("none")) {
-			while(i < objects.size() && !buildingFound) {
-				if(objects.get(i) instanceof SCStructure) {
-					s = (SCStructure)objects.get(i);
-					if(s.getName().equals(name) && s.isComplete() && s.getQueueLength()==0 
-							&& s.getAddonName().equals("") && s.isLifted()) {
+		int b = -1;
+		int c = -1;
+		boolean buildingFound = false;
+		boolean addonFound = false;
+
+		if (addon.equals("none")) {
+			while ((i < this.objects.size()) && (!buildingFound)) {
+				if ((this.objects.get(i) instanceof SCStructure)) {
+					SCStructure s = (SCStructure)this.objects.get(i);
+					if ((s.getName().equals(name)) && (s.isComplete()) && (s.getQueueLength() == 0) && 
+							(s.getAddonName().equals("")) && (s.isLifted())) {
 						b = i;
-						buildingFound=true;
+						buildingFound = true;
 					}
 				}
 				i++;
 			}
-			if(buildingFound) {
-				if(objects.get(b).land(addon)) {
+			if (buildingFound) {
+				if (((SCObject)this.objects.get(b)).land(addon)) {
 					return true;
-				} else {
-					System.out.println(printTime() + "   <Model:land> Land building failed");
-					return false;
 				}
-			} else {
-				System.out.println(printTime() + "   <Model:lift> BuildingFound = " + buildingFound);
+				System.out.println(printTime() + "   <Model:land> Land building failed");
 				return false;
 			}
 
-		} else {
-			while(i < objects.size() && (!buildingFound || !addonFound)) {
-				if(objects.get(i) instanceof SCStructure) {
-					s = (SCStructure)objects.get(i);
-					if(s.getName().equals(name) && s.isComplete() && s.getQueueLength()==0 
-							&& s.getAddonName().equals("") && s.isLifted()) {
-						b = i;
-						buildingFound=true;
-					}
-				}
-				if(objects.get(i) instanceof SCAddon) {
-					a = (SCAddon)objects.get(i);
-					if(a.getName().equals(addon) && a.getQueueLength()==0 && a.isAvailable() &&
-							a.isComplete() && a.getAttachedTo().equals("")) {
-						c = i;
-						addonFound=true;
-
-					}
-				}
-				i++;
-			}
-
-			if(buildingFound && addonFound) {
-				if(objects.get(b).land(addon)) {
-					if(objects.get(c).attach(name)) {
-						return true;
-					} else {
-						System.out.println(printTime() + "   <Model:lift> Attach addon failed");
-						return false;
-					}
-				} else {
-					System.out.println(printTime() + "   <Model:lift> Land structure failed");
-					return false;
-				}
-			} else {
-				System.out.println(printTime() + "   <Model:lift> BuildingFound = " + buildingFound + " AddonFound = " + addonFound);
-				return false;
-			}
+			System.out.println(printTime() + "   <Model:land> BuildingFound = " + buildingFound);
+			return false;
 		}
+
+		do
+		{
+			if ((this.objects.get(i) instanceof SCStructure)) {
+				SCStructure s = (SCStructure)this.objects.get(i);
+				if ((s.getName().equals(name)) && (s.isComplete()) && (s.getQueueLength() == 0) && 
+						(s.getAddonName().equals("")) && (s.isLifted())) {
+					b = i;
+					buildingFound = true;
+				}
+			}
+			if ((this.objects.get(i) instanceof SCAddon)) {
+				SCAddon a = (SCAddon)this.objects.get(i);
+				if ((a.getName().equals(addon)) && (a.getQueueLength() == 0) && (a.isAvailable()) && 
+						(a.isComplete()) && (a.getAttachedTo().equals(""))) {
+					c = i;
+					addonFound = true;
+				}
+			}
+
+			i++;
+		}
+		while ((i < this.objects.size()) && ((!buildingFound) || (!addonFound)));
+
+		if ((buildingFound) && (addonFound)) {
+			if (((SCObject)this.objects.get(b)).land(addon)) {
+				if (((SCObject)this.objects.get(c)).attach(name)) {
+					return true;
+				}
+				System.out.println(printTime() + "   <Model:lift> Attach addon failed");
+				return false;
+			}
+
+			System.out.println(printTime() + "   <Model:lift> Land structure failed");
+			return false;
+		}
+
+		System.out.println(printTime() + "   <Model:lift> BuildingFound = " + buildingFound + " AddonFound = " + addonFound);
+		return false;
 	}
 
+	public boolean maynard()
+	{
+		int scvsFrom = 0;
+		int scvsTo = 200;
+		int baseFrom = -1;
+		int baseTo = -1;
+		int moving = -1;
+		for (int b = 0; b < this.bases.size(); b++) {
+			if (((Base)this.bases.get(b)).scvCount() + ((Base)this.bases.get(b)).idleSCVCount() > scvsFrom) {
+				scvsFrom = ((Base)this.bases.get(b)).scvCount() + ((Base)this.bases.get(b)).idleSCVCount();
+				baseFrom = b;
+			}
+			if (((Base)this.bases.get(b)).scvCount() + ((Base)this.bases.get(b)).idleSCVCount() < scvsTo) {
+				scvsTo = ((Base)this.bases.get(b)).scvCount() + ((Base)this.bases.get(b)).idleSCVCount();
+				baseTo = b;
+			}
 
-	public void startMarquee(int x, int y) {
-		mX1=x;
-		mY1=y;
+		}
+
+		if ((baseFrom >= 0) && (baseTo >= 0) && (baseFrom != baseTo)) {
+			moving = (int)Math.round((scvsFrom - scvsTo) * 0.5D);
+
+			for (int i = 0; i < moving; i++) {
+				SCV s = ((Base)this.bases.get(baseFrom)).transferSCV();
+				((Base)this.bases.get(baseTo)).addSCV(s);
+			}
+			return true;
+		}
+		return false;
+	}
+
+	public void startMarquee(int x, int y)
+	{
+		this.mX1 = x;
+		this.mY1 = y;
 	}
 
 	public void updateMarquee(int x, int y) {
-		mX2=x;
-		mY2=y;
+		this.mX2 = x;
+		this.mY2 = y;
 	}
 
-	public void endMarquee(int x, int y) {
-		//System.out.println(mX1+" "+mY1+" - "+mX2+" "+mY2);
-		mX1 -= border;
-		mY1 -= border;
-		mY1 /= spacing;
-		mX1 /= scale;
-		mX1 += scroll;
+	public void endMarquee(int x, int y)
+	{
+		this.mX1 -= this.border;
+		this.mY1 -= this.border;
+		this.mY1 /= this.spacing;
+		this.mX1 = (int)(this.mX1 / this.scale);
+		this.mX1 += this.scroll;
 
-		mX2 -= border;
-		mY2 -= border;
-		mY2 /= spacing;
-		mX2 /= scale;
-		mX2 += scroll;
+		this.mX2 -= this.border;
+		this.mY2 -= this.border;
+		this.mY2 /= this.spacing;
+		this.mX2 = (int)(this.mX2 / this.scale);
+		this.mX2 += this.scroll;
 
-		int ax;
-		int ay;
-		int aend;
-		//System.out.println(mX1+" "+mY1+" - "+mX2+" "+mY2);
-		if(mX2<mX1) {
-			int tmp = mX2;
-			mX2 = mX1;
-			mX1 = tmp;
-		} // make mY1 < mY2
-		if(mY2<mY1) {
-			int tmp = mY2;
-			mY2 = mY1;
-			mY1 = tmp;
-		} // make mY1 < mY2
-		if(mX1>=0 && mX2>=0 && mY1>=0 && mY2>=0) {
-			for(int i = 0; i < actions.size(); i++) {
-				ax=actions.get(i).getStartTime();
-				ay=actions.get(i).getY();
-				aend=ax+actions.get(i).getDuration();
-				if(ax>mX1 && aend<mX2 && ay>=mY1 && ay<=mY2) {
-					actions.get(i).select();
+		if (this.mX2 < this.mX1) {
+			int tmp = this.mX2;
+			this.mX2 = this.mX1;
+			this.mX1 = tmp;
+		}
+		if (this.mY2 < this.mY1) {
+			int tmp = this.mY2;
+			this.mY2 = this.mY1;
+			this.mY1 = tmp;
+		}
+		if ((this.mX1 >= 0) && (this.mX2 >= 0) && (this.mY1 >= 0) && (this.mY2 >= 0)) {
+			for (int i = 0; i < this.actions.size(); i++) {
+				int ax = ((SCAction)this.actions.get(i)).getStartTime();
+				int ay = ((SCAction)this.actions.get(i)).getY();
+				int aend = ax + ((SCAction)this.actions.get(i)).getDuration();
+				if ((ax > this.mX1) && (aend < this.mX2) && (ay >= this.mY1) && (ay <= this.mY2)) {
+					((SCAction)this.actions.get(i)).select();
 				}
 			}
 		}
 
-		mX1=-1;
-		mY1=-1;
-		mX2=-1;
-		mY2=-1;
-
+		this.mX1 = -1;
+		this.mY1 = -1;
+		this.mX2 = -1;
+		this.mY2 = -1;
 	}
 
-
-	public void selectMultipleAction(int x, int y) {
-		x -= border;
-		y -= border;
-		y /= spacing;
-		x /= scale;
-		x += scroll;
+	public void selectMultipleAction(int x, int y)
+	{
+		x -= this.border;
+		y -= this.border;
+		y /= this.spacing;
+		x = (int)(x / this.scale);
+		x += this.scroll;
 
 		int a = 0;
-		int size = actions.size();
+		int size = this.actions.size();
 		boolean f = false;
-		while (!f && a < size) {
-			if (x >= actions.get(a).getStartTime()
-					&& x < actions.get(a).getStartTime() + actions.get(a).getDuration()
-					&& y >= actions.get(a).getY()
-					&& y < actions.get(a).getY() + 1) {
-				actions.get(a).toggleSelect();
-				f=true;
-				//System.out.println("Selecting action " + a);
+		while ((!f) && (a < size)) {
+			if ((x >= ((SCAction)this.actions.get(a)).getStartTime()) && 
+					(x < ((SCAction)this.actions.get(a)).getStartTime() + ((SCAction)this.actions.get(a)).getDuration()) && 
+					(y >= ((SCAction)this.actions.get(a)).getY()) && 
+					(y < ((SCAction)this.actions.get(a)).getY() + 1)) {
+				System.out.println("select toggled");
+				((SCAction)this.actions.get(a)).toggleSelect();
+				f = true;
 			}
 			a++;
 		}
 	}
+	public void selectNoActions() {
+		for (int i = 0; i < this.actions.size(); i++) {
+			((SCAction)this.actions.get(i)).deselect();
+		}
 
+	}
 	public void selectAllActions(int x, int y) {
-		x -= border;
-		y -= border;
-		y /= spacing;
-		x /= scale;
-		x += scroll;
-		for(int i = 0; i < actions.size(); i++) {
-			actions.get(i).deselect();
+		x -= this.border;
+		y -= this.border;
+		y /= this.spacing;
+		x = (int)(x / this.scale);
+		x += this.scroll;
+		for (int i = 0; i < this.actions.size(); i++) {
+			((SCAction)this.actions.get(i)).deselect();
 		}
 		int a = 0;
-		boolean f= false;
-		String name="";
-		while(!f && a < actions.size()) {
-			//for (int i = 0; i < actions.size(); i++) {
-			if (x >= actions.get(a).getStartTime()
-					&& x < actions.get(a).getStartTime() + actions.get(a).getDuration()
-					&& y >= actions.get(a).getY()
-					&& y < actions.get(a).getY() + 1) {
-				name = actions.get(a).getName();
-				actions.get(a).select();
-				f=true;
-				//System.out.println("Selecting action " + i);
+		boolean f = false;
+		String name = "";
+		while ((!f) && (a < this.actions.size()))
+		{
+			if ((x >= ((SCAction)this.actions.get(a)).getStartTime()) && 
+					(x < ((SCAction)this.actions.get(a)).getStartTime() + ((SCAction)this.actions.get(a)).getDuration()) && 
+					(y >= ((SCAction)this.actions.get(a)).getY()) && 
+					(y < ((SCAction)this.actions.get(a)).getY() + 1)) {
+				name = ((SCAction)this.actions.get(a)).getName();
+				((SCAction)this.actions.get(a)).select();
+				f = true;
 			}
+
 			a++;
 		}
-		for(int i = 0;i < actions.size(); i++) {
-			if(actions.get(i).getName().equals(name)) {
-				actions.get(i).select();
+		for (int i = 0; i < this.actions.size(); i++)
+			if (((SCAction)this.actions.get(i)).getName().equals(name))
+				((SCAction)this.actions.get(i)).select();
+	}
+
+	public void rightClick(int x, int y)
+	{
+		x -= this.border;
+		y -= this.border;
+		y /= this.spacing;
+		x = (int)(x / this.scale);
+		x += this.scroll;
+		int a = 0;
+		boolean f = false;
+		int size = this.actions.size();
+		while ((!f) && (a < size)) {
+			if ((x >= ((SCAction)this.actions.get(a)).getStartTime()) && 
+					(x < ((SCAction)this.actions.get(a)).getStartTime() + ((SCAction)this.actions.get(a)).getDuration()) && 
+					(y >= ((SCAction)this.actions.get(a)).getY()) && (y < ((SCAction)this.actions.get(a)).getY() + 1)) {
+				((SCAction)this.actions.get(a)).setPopup(true);
+				((SCAction)this.actions.get(a)).select();
+				f = true;
 			}
+
+			a++;
 		}
 	}
 
-	public void selectAction(int x, int y) {
-		int x2=x;
-		int y2=y;
+	public void selectAction(int x, int y)
+	{
+		int x2 = x;
+		int y2 = y;
 
-		x -= border;
-		y -= border;
-		y /= spacing;
-		x /= scale;
-		x += scroll;
+		x -= this.border;
+		y -= this.border;
+		y /= this.spacing;
+		x = (int)(x / this.scale);
+		x += this.scroll;
 
-		x2 -= border;
-		x2 += (scale*scroll);
+		x2 -= this.border;
+		x2 = (int)(x2 + this.scale * this.scroll);
 
-		y2 -= border;
-		for(int i = 0; i < actions.size(); i++) {
-			if(actions.get(i).getPopup()==true) {
-				if(actions.get(i).getOptionsSize()>0) {
-					//SCActionBuildAddon a = (SCActionBuildAddon)actions.get(i);
-					SCAction a = actions.get(i);
-					int x3 = (int)(x2-(scale * (a.getStartTime()+a.getDuration())));
-					int y3 = y2 - (actions.get(i).getY() * spacing) - thickness;
-					y3 /= 14;
-					//System.out.println(x3 + " " + y3);
-					if(x3>0 && x3<60 && y3 < actions.get(i).getOptionsSize()) {
-						actions.get(i).setOption(y3);
-					}
-				} // add else if for other actions here like SCActionLand
+		y2 -= this.border;
+		for (int i = 0; i < this.actions.size(); i++) {
+			if ((!((SCAction)this.actions.get(i)).getPopup()) || 
+					(((SCAction)this.actions.get(i)).getOptionsSize() <= 0))
+				continue;
+			SCAction a = (SCAction)this.actions.get(i);
+			int x3 = (int)(x2 - this.scale * (a.getStartTime() + a.getDuration()));
+			int y3 = y2 - ((SCAction)this.actions.get(i)).getY() * this.spacing - this.thickness;
+			y3 /= 14;
+
+			if ((x3 > 0) && (x3 < 60) && (y3 < ((SCAction)this.actions.get(i)).getOptionsSize())) {
+				((SCAction)this.actions.get(i)).setOption(y3);
 			}
+
 		}
-		y2 -= (y*spacing);
-		y2 -= thickness;
-		for(int i = 0; i < actions.size(); i++) {
-			actions.get(i).setPopup(false);
-			if(actions.get(i).getOptionsSize()>0) {
-				SCAction a = actions.get(i);
-				if(a.isSelected()) {
-					int t = (int)((scale * (a.getStartTime()+a.getDuration()))-x2);
-					//System.out.println(x + " " + y + " " + t + " " + y2);
-					if(t>0 && t < 14 && y2 > 0 && y2 < 14) {
+
+		y2 -= y * this.spacing;
+		y2 -= this.thickness;
+		for (int i = 0; i < this.actions.size(); i++) {
+			((SCAction)this.actions.get(i)).setPopup(false);
+			if (((SCAction)this.actions.get(i)).getOptionsSize() > 0) {
+				SCAction a = (SCAction)this.actions.get(i);
+				if (a.isSelected()) {
+					int t = (int)(this.scale * (a.getStartTime() + a.getDuration()) - x2);
+
+					if ((t > 0) && (t < 14) && (y2 > 0) && (y2 < 14)) {
 						a.setPopup(true);
 					}
 				}
 			}
-			actions.get(i).deselect();
+			((SCAction)this.actions.get(i)).deselect();
 		}
 		int a = 0;
-		int size = actions.size();
+		int size = this.actions.size();
 		boolean f = false;
-		while (!f && a < size) {
-			if (x >= actions.get(a).getStartTime()
-					&& x < actions.get(a).getStartTime() + actions.get(a).getDuration()
-					&& y >= actions.get(a).getY()
-					&& y < actions.get(a).getY() + 1) {
-				actions.get(a).select();
-				f=true;
-				//System.out.println("Selecting action " + a);
+		while ((!f) && (a < size)) {
+			if ((x >= ((SCAction)this.actions.get(a)).getStartTime()) && 
+					(x < ((SCAction)this.actions.get(a)).getStartTime() + ((SCAction)this.actions.get(a)).getDuration()) && 
+					(y >= ((SCAction)this.actions.get(a)).getY()) && 
+					(y < ((SCAction)this.actions.get(a)).getY() + 1)) {
+				((SCAction)this.actions.get(a)).select();
+				f = true;
 			}
+
 			a++;
 		}
-		//		System.out.println(x + " " + y + " " + x2 + " " + y2);
+	}
 
-	}
-	public void moveSelected(int x, int y) {
-		for (int i = 0; i < actions.size(); i++) {
-			if (actions.get(i).isSelected()) {
-				actions.get(i).addStartTime(x);
-				actions.get(i).moveY(y);
+	public void moveSelected(int x, int y)
+	{
+		for (int i = 0; i < this.actions.size(); i++)
+			if (((SCAction)this.actions.get(i)).isSelected()) {
+				((SCAction)this.actions.get(i)).addStartTime(x);
+				((SCAction)this.actions.get(i)).moveY(y);
 			}
-		}
 	}
-	public void moveSelectedToEarliest() {
-		SCAction action;
-		int x;
-		int y;
-		int dur;
-		int x2;
-		int end;
-		int end2;
-		int size = actions.size();
-		for(int i = 0; i < size; i++) {
-			if(actions.get(i).isSelected()) {
-				action = actions.get(i);
-				if(action.isComplete()) {
-					while(action.getStartTime()>0 && action.isComplete()) {
+
+	public void moveSelectedToEarliest()
+	{
+		int size = this.actions.size();
+		for (int i = 0; i < size; i++)
+			if (((SCAction)this.actions.get(i)).isSelected()) {
+				SCAction action = (SCAction)this.actions.get(i);
+				if (action.isComplete()) {
+					do {
 						action.addStartTime(-1);
-						this.reset();
-						this.play();
-						if(!action.isComplete()) {
+						reset();
+						play();
+						if (!action.isComplete())
 							action.addStartTime(1);
-						}
-					}
-				} else {
+						if (action.getStartTime() <= 0) break; 
+					}while (action.isComplete());
+				}
+				else
+				{
 					int r = action.getStartTime();
-					while(action.getStartTime()<maxTime && !action.isComplete()) {
+					while ((action.getStartTime() < this.maxTime) && (!action.isComplete())) {
 						action.addStartTime(1);
-						this.reset();
-						this.play();
+						reset();
+						play();
 					}
-					if(!action.isComplete()) {
+					if (!action.isComplete()) {
 						action.setStartTime(r);
 					}
 				}
 
-				x = action.getStartTime();
-				y = action.getY();
-				dur = getTime(action.getName());
-				end = x + dur;
+				int x = action.getStartTime();
+				int y = action.getY();
+				int dur = getTime(action.getName());
+				int end = x + dur;
 				boolean space = false;
-				SCAction action2;
-				while(!space) {
-					space=true;
-					for(int j = 0; j < size; j++) {
-						if(i!=j) {
-							action2 = actions.get(j);
-							if(action2.getY() == y) {
-								x2=action2.getStartTime();
-								end2=action2.getStartTime()+action2.getDuration();
 
-								if(x <= x2 && x2<end && end<=end2) {
-									//System.out.println("y:" + y + " | " + x +" - "+end+" & " + x2 + " - " + end2 + "***");
-									space=false;
-								} else if(x2<x && x<end2 && end2<end) {
-									//System.out.println("y:" + y + " | " + x +" - "+end+" & " + x2 + " - " + end2 + "***");
-									space=false;
-								} else if(x<x2 && end2<end) {
-									//System.out.println("y:" + y + " | " + x +" - "+end+" & " + x2 + " - " + end2 + "***");
-									space=false;
-								} else if(x2<x && end<end2) {
-									//System.out.println("y:" + y + " | " + x +" - "+end+" & " + x2 + " - " + end2 + "***");
-									space=false;
-								} else {
-								}
-
+				while (!space) {
+					space = true;
+					for (int j = 0; j < size; j++) {
+						if (i != j) {
+							SCAction action2 = (SCAction)this.actions.get(j);
+							if (action2.getY() == y) {
+								int x2 = action2.getStartTime();
+								int end2 = action2.getStartTime() + action2.getDuration();
+								if ((x <= x2) && (x2 < end) && (end <= end2))
+								{
+									space = false;
+								} else if ((x2 <= x) && (x < end2) && (end2 <= end))
+								{
+									space = false;
+								} else if ((x < x2) && (end2 < end))
+								{
+									space = false; } else {
+										if ((x2 >= x) || (end >= end2))
+											continue;
+										space = false;
+									}
 							}
+
 						}
+
 					}
-					if(!space) {
+
+					if (!space) {
 						y++;
 					}
 				}
-				if(space) {
+				if (space)
 					action.setY(y);
-				}
 			}
-		}
 	}
 
-	public String setTotalsText() {
-		String s="";
-		s +="Supply        : "+food+"/"+supply+"\n";
-		s +="Total Minerals: "+totalMineralsMined+"\n";
-		s +="Total Gas     : "+totalGasMined+"\n";
-		s +="\n";
-		String name;
-		for(int i = 0; i < bases.size(); i++) {
-			if(i==0) {
-				s += bases.get(i).scvCount() +"("+ bases.get(i).scvCountGas()+")" + " SCVs at main\n";
-			} else if(i==1) {
-				s += bases.get(i).scvCount() +"("+ bases.get(i).scvCountGas() +")"+ " SCVs at natural\n";
-			} else {
-				s += bases.get(i).scvCount() +"("+ bases.get(i).scvCountGas()+")" + " SCVs at base " + (i+1) + "\n";
+	public String setTotalsText()
+	{
+		ArrayList objectNames = new ArrayList();
+
+		int n = 13;
+
+		int[] counts = new int[n];
+		for (int i = 0; i < n; i++) {
+			counts[i] = 0;
+		}
+		for (int i = 0; i < this.objects.size(); i++) {
+			if ((((SCObject)this.objects.get(i)).getName().equals("Barracks")) || 
+					(((SCObject)this.objects.get(i)).getName().equals("Factory")) || 
+					(((SCObject)this.objects.get(i)).getName().equals("Starport"))) {
+				SCStructure b = (SCStructure)this.objects.get(i);
+				objectNames.add(b.getName() + ":" + b.getAddonName()); } else {
+					if ((((SCObject)this.objects.get(i)).getName().equals("TechLab")) || 
+							(((SCObject)this.objects.get(i)).getName().equals("Reactor"))) {
+						continue;
+					}
+					objectNames.add(((SCObject)this.objects.get(i)).getName());
+				}
+		}
+
+		for (int i = 0; i < objectNames.size(); i++) {
+			String name = (String)objectNames.get(i);
+			if (name.equals("Marine"))
+				counts[0] += 1;
+			else if (name.equals("Marauder"))
+				counts[1] += 1;
+			else if (name.equals("Ghost"))
+				counts[2] += 1;
+			else if (name.equals("Reaper"))
+				counts[3] += 1;
+			else if (name.equals("Hellion"))
+				counts[4] += 1;
+			else if (name.equals("SiegeTank"))
+				counts[5] += 1;
+			else if (name.equals("Thor"))
+				counts[6] += 1;
+			else if (name.equals("Viking"))
+				counts[7] += 1;
+			else if (name.equals("Medivac"))
+				counts[8] += 1;
+			else if (name.equals("Banshee"))
+				counts[9] += 1;
+			else if (name.equals("Raven"))
+				counts[10] += 1;
+			else if (name.equals("Battlecruiser"))
+				counts[11] += 1;
+			else if (name.equals("SupplyDepot")) {
+				counts[12] += 1;
 			}
 		}
-		s+="\n";
-		for(int i = 0; i < objects.size(); i++) {
-			name = objects.get(i).getName();
-			if(name.equals("Barracks") || name.equals("Factory") || name.equals("Starport")) {
-				if(!((SCStructure)objects.get(i)).getAddonName().equals("")) {
-					name += " with ";
-					name += ((SCStructure)objects.get(i)).getAddonName();
-				}
-			} 
-			s += name;
-			s += "\n";
+		String s = "";
+		s = s + "Supply        : " + this.food + "/" + this.supply + "\n";
+		s = s + "Total Minerals: " + this.totalMineralsMined + "\n";
+		s = s + "Total Gas     : " + this.totalGasMined + "\n";
+		s = s + "\n";
+
+		for (int i = 0; i < this.bases.size(); i++) {
+			if (i == 0)
+				s = s + ((Base)this.bases.get(i)).scvCount() + "&" + ((Base)this.bases.get(i)).scvCountGas() + 
+				"(" + ((Base)this.bases.get(i)).idleSCVCount() + ") SCVs at main\n";
+			else if (i == 1)
+				s = s + ((Base)this.bases.get(i)).scvCount() + "&" + ((Base)this.bases.get(i)).scvCountGas() + 
+				"(" + ((Base)this.bases.get(i)).idleSCVCount() + ") SCVs at natural\n";
+			else {
+				s = s + ((Base)this.bases.get(i)).scvCount() + "&" + ((Base)this.bases.get(i)).scvCountGas() + 
+				"(" + ((Base)this.bases.get(i)).idleSCVCount() + ") SCVs at base " + (i + 1) + "\n";
+			}
 		}
-		
-		
+		s = s + "\n";
+		if (counts[0] > 0) s = s + counts[0] + " Marines\n";
+		if (counts[1] > 0) s = s + counts[1] + " Marauders\n";
+		if (counts[2] > 0) s = s + counts[2] + " Ghosts\n";
+		if (counts[3] > 0) s = s + counts[3] + " Reapers\n";
+		if (counts[4] > 0) s = s + counts[4] + " Hellions\n";
+		if (counts[5] > 0) s = s + counts[5] + " Siege Tanks\n";
+		if (counts[6] > 0) s = s + counts[6] + " Thors\n";
+		if (counts[7] > 0) s = s + counts[7] + " Vikings\n";
+		if (counts[8] > 0) s = s + counts[8] + " Medivacs\n";
+		if (counts[9] > 0) s = s + counts[9] + " Banshees\n";
+		if (counts[10] > 0) s = s + counts[10] + " Ravens\n";
+		if (counts[11] > 0) s = s + counts[11] + " Battlecruisers\n";
+		if (counts[12] > 0) s = s + counts[12] + " Supply Depots\n";
+
+		s = s + "\n";
+		for (int i = 0; i < objectNames.size(); i++) {
+			String name = (String)objectNames.get(i);
+			if ((name.equals("Marine")) || (name.equals("Marauder")) || (name.equals("Ghost")) || 
+					(name.equals("Reaper")) || (name.equals("Hellion")) || 
+					(name.equals("SiegeTank")) || (name.equals("Thor")) || 
+					(name.equals("Viking")) || (name.equals("Medivac")) || 
+					(name.equals("Banshee")) || (name.equals("Raven")) || 
+					(name.equals("Battlecruiser")) || (name.equals("SupplyDepot"))) continue;
+			s = s + name;
+			s = s + "\n";
+		}
+
 		return s;
 	}
 
-	public int freeGeysers() {
-		int g= 0;
-		for(int i = 0; i < bases.size(); i++) {
-			g+=bases.get(i).freeGeysers();
+	public int freeGeysers()
+	{
+		int g = 0;
+		for (int i = 0; i < this.bases.size(); i++) {
+			g += ((Base)this.bases.get(i)).freeGeysers();
 		}
 		return g;
 	}
 
 	public int freeRefineries() {
 		int r = 0;
-		for(int i = 0; i < bases.size(); i++) {
-			r+=bases.get(i).freeRefineries();
+		for (int i = 0; i < this.bases.size(); i++) {
+			r += ((Base)this.bases.get(i)).freeRefineries();
 		}
-		//System.out.println(printTime() + "   <Model> Free Refineries " + r);
+
 		return r;
 	}
 
+	public int scvsOnGas() {
+		int s = 0;
+		for (int i = 0; i < this.bases.size(); i++) {
+			s += ((Base)this.bases.get(i)).scvCountGas();
+		}
+		return s;
+	}
 
-	public void addUnit(SCObject s) {
-		//System.out.println(printTime() + "   <Model>Adding unit " + s.getName());
-		objects.add(s);
+	public void addUnit(SCObject s)
+	{
+		this.objects.add(s);
 	}
 
 	public int actionCount() {
-		return actions.size();
+		return this.actions.size();
 	}
 
-
-	public int getSupply() {
-		return supply;
+	public int getSupply()
+	{
+		return this.supply;
 	}
 
 	public int getFood() {
-		return food;
+		return this.food;
 	}
 
-	public void addSupply(int s) {
-		//System.out.println(printTime() + "   <Model:addSupply> Adding " + s);
-		supply += s;
+	public void addSupply(int s)
+	{
+		this.supply += s;
 	}
 	public void addFood(int f) {
-		food += f;
+		this.food += f;
 	}
 	public int getMinerals() {
-		return minerals;
+		return this.minerals;
 	}
 	public int getGas() {
-		return gas;
+		return this.gas;
 	}
 
 	public String[] getUnitOptions() {
-		String[] s = {"SCV","Mule","TransferToGas","Marine", "Marauder", "Reaper", "Ghost", "Hellion", 
-				"SiegeTank", "Thor", "Viking", "Medivac", "Banshee", "Battlecruiser", "Raven"};
+		String[] s = { "SCV", "Mule", "TransferToGas", "TransferOffGas", "Maynard", "Marine", "Marauder", "Reaper", "Ghost", "Hellion", 
+				"SiegeTank", "Thor", "Viking", "Medivac", "Banshee", "Battlecruiser", "Raven", "Scout" };
 		return s;
 	}
 
 	public String[] getBuildingOptions() {
-		String[] s = {"SupplyDepot", "Refinery","Barracks", "OrbitalCommand","Factory",
-				"Starport", "TechLab", "Reactor", "LiftBarracks","LiftFactory",
-				"LiftStarport","LandBarracks","LandFactory","LandStarport","CommandCenter", "CalldownSupply",
-				"Bunker","EngineeringBay","Armory",  "GhostAcademy", "Missile Turret",
-				"PlanetaryFortress","FusionCore", "SensorTower"};
+		String[] s = { "SupplyDepot", "Refinery", "Barracks", "OrbitalCommand", "Factory", 
+				"Starport", "TechLab", "Reactor", "LiftBarracks", "LiftFactory", 
+				"LiftStarport", "LandBarracks", "LandFactory", "LandStarport", "CommandCenter", "CalldownSupply", 
+				"Bunker", "EngineeringBay", "Armory", "GhostAcademy", "MissileTurret", 
+				"PlanetaryFortress", "FusionCore", "SensorTower", "Scan" };
 		return s;
 	}
 
 	public String[] getResearchOptions() {
-		String[] s = {"StimPack",
-				"CombatShield",
-				"ConcussiveShells",
-				"NitroPack",
-				"InfernalPreigniter",
-				"SiegeTech",
-				"250mmStrikeCannons",
-				"CloakingField",
-				"SeekerMissile",
-				"CaduceusReactor",
-				"CorvidReactor",
-				"BehemothReactor",
-				"PersonalCloaking",
-				"MoebiusReactor",
-				"Nuke",
-				"InfantryWeaponsLevel1",
-				"InfantryWeaponsLevel2",
-				"InfantryWeaponsLevel3",
-				"InfantryArmorLevel1",
-				"InfantryArmorLevel2",
-				"InfantryArmorLevel3",
-				"VehicleWeaponsLevel1",
-				"VehicleWeaponsLevel2",
-				"VehicleWeaponsLevel3",
-				"VehicleArmorLevel1",
-				"VehicleArmorLevel2",
-				"VehicleArmorLevel3",
-				"ShipWeaponsLevel1",
-				"ShipWeaponsLevel2",
-				"ShipWeaponsLevel3",
-				"ShipArmorLevel1",
-				"ShipArmorLevel2",
-				"ShipArmorLevel3",
-				"WeaponRefit",
-				"NeosteelFrame",
-				"BuildingArmor",
-				"DurableMaterials",
-				"HiSecAutoTracking",
-				};
+		String[] s = { "StimPack", 
+				"CombatShield", 
+				"ConcussiveShells", 
+				"NitroPack", 
+				"InfernalPreigniter", 
+				"SiegeTech", 
+				"250mmStrikeCannons", 
+				"CloakingField", 
+				"SeekerMissile", 
+				"CaduceusReactor", 
+				"CorvidReactor", 
+				"BehemothReactor", 
+				"PersonalCloaking", 
+				"MoebiusReactor", 
+				"Nuke", 
+				"InfantryWeaponsLevel1", 
+				"InfantryWeaponsLevel2", 
+				"InfantryWeaponsLevel3", 
+				"InfantryArmorLevel1", 
+				"InfantryArmorLevel2", 
+				"InfantryArmorLevel3", 
+				"VehicleWeaponsLevel1", 
+				"VehicleWeaponsLevel2", 
+				"VehicleWeaponsLevel3", 
+				"VehicleArmorLevel1", 
+				"VehicleArmorLevel2", 
+				"VehicleArmorLevel3", 
+				"ShipWeaponsLevel1", 
+				"ShipWeaponsLevel2", 
+				"ShipWeaponsLevel3", 
+				"ShipArmorLevel1", 
+				"ShipArmorLevel2", 
+				"ShipArmorLevel3", 
+				"WeaponRefit", 
+				"NeosteelFrame", 
+				"BuildingArmor", 
+				"DurableMaterials", 
+		"HiSecAutoTracking" };
+
 		return s;
 	}
 
 	public int getMineralCost(String n) {
 		int i = 0;
 		try {
-			i = mineralCost.get(n);
-		} catch (NullPointerException e) {
-			//System.out.println("Error: <Model:getMineralCost> Can't find unit name " + n + " - " + e);
+			i = ((Integer)this.mineralCost.get(n)).intValue();
+		}
+		catch (NullPointerException e) {
 			i = 0;
 		}
 		return i;
@@ -1905,9 +2067,9 @@ public class Model {
 	public int getGasCost(String n) {
 		int i = 0;
 		try {
-			i = gasCost.get(n);
-		} catch (NullPointerException e) {
-			//System.out.println("Error: <Model:getGasCost> Can't find unit name " + n + " - " + e);
+			i = ((Integer)this.gasCost.get(n)).intValue();
+		}
+		catch (NullPointerException e) {
 			i = 0;
 		}
 		return i;
@@ -1916,41 +2078,41 @@ public class Model {
 	public int getTime(String n) {
 		int i = 0;
 		try {
-			i = times.get(n);
-		} catch (NullPointerException e) {
-			//System.out.println("Error: <Model:getTime> Can't find unit name " + n + " - " + e);
+			i = ((Integer)this.times.get(n)).intValue();
+		}
+		catch (NullPointerException e) {
 			i = 0;
 		}
 		return i;
 	}
 	public String getPrereq(String n) {
-		//System.out.println("Getting prereq for " + n);
 		String s;
 		try {
-			s = prereqs.get(n);
-		} catch (NullPointerException e) {
-			//System.out.println("Error: <Model:getPrereq> Can't find prereq for " + n + " - " + e);
-			s = null;
-			//System.out.println("s "+s);
+			s = (String)this.prereqs.get(n);
 		}
+		catch (NullPointerException e)
+		{
+			s = null;
+		}
+
 		return s;
 	}
 	public String getBuild(String n) {
 		String s;
-		try {
-			s = build.get(n);
-		} catch (NullPointerException e) {
-			//System.out.println("Error: <Model:getBuild> Can't find build for " + n + " - " + e);
+		try { s = (String)this.build.get(n);
+		}
+		catch (NullPointerException e)
+		{
 			s = null;
 		}
 		return s;
 	}
 	public String getTech(String n) {
 		String s;
-		try {
-			s = tech.get(n);
-		} catch (NullPointerException e) {
-			//System.out.println("Error: <Model:getBuild> Can't find build for " + n + " - " + e);
+		try { s = (String)this.tech.get(n);
+		}
+		catch (NullPointerException e)
+		{
 			s = null;
 		}
 		return s;
@@ -1958,36 +2120,36 @@ public class Model {
 	public int getFood(String n) {
 		int i = 0;
 		try {
-			i = foods.get(n);
-		} catch (NullPointerException e) {
-			// System.out.println("Error: <Model:getFood> Can't find unit name " + n + " - " + e);
+			i = ((Integer)this.foods.get(n)).intValue();
+		}
+		catch (NullPointerException e) {
 			i = 0;
 		}
-		return i; // foods.get(n);
+		return i;
 	}
 	public int getSupply(String n) {
 		int i = 0;
 		try {
-			i = supplies.get(n);
-		} catch (NullPointerException e) {
-			// System.out.println("Error: <Model:getSupply> Can't find unit name " + n + " - " + e);
+			i = ((Integer)this.supplies.get(n)).intValue();
+		}
+		catch (NullPointerException e) {
 			i = 0;
 		}
-		return i; // foods.get(n);
+		return i;
 	}
 
-	public void addMinerals(int c) {
-		//System.out.println(printTime() + "   <Model:addMinerals> Adding " + c);
-		minerals += c;
-		totalMineralsMined += c;
+	public void addMinerals(int c)
+	{
+		this.minerals += c;
+		this.totalMineralsMined += c;
 	}
+
 	public void spendMinerals(int c) {
-		//System.out.println(printTime() + "   <Model:spendMinerals> Spending " + c);
-		minerals -= c;
-	}	
+		this.minerals -= c;
+	}
 
 	public int getTotalMineralsMined() {
-		return totalMineralsMined;
+		return this.totalMineralsMined;
 	}
 
 	public void setTotalMineralsMined(int totalMineralsMined) {
@@ -1995,37 +2157,37 @@ public class Model {
 	}
 
 	public int getTotalGasMined() {
-		return totalGasMined;
+		return this.totalGasMined;
 	}
 
 	public void setTotalGasMined(int totalGasMined) {
 		this.totalGasMined = totalGasMined;
 	}
 	public SCAction getAction(int i) {
-		return actions.get(i);
+		return (SCAction)this.actions.get(i);
 	}
 	public void addGas(int g) {
-		gas += g;
-		totalGasMined += g;
+		this.gas += g;
+		this.totalGasMined += g;
 	}
 	public int getMineralGraph(int t) {
-		return mineralGraph[t];
+		return this.mineralGraph[t];
 	}
 
 	public int getGasGraph(int t) {
-		return gasGraph[t];
+		return this.gasGraph[t];
 	}
 
 	public int getEnergyGraph(int t) {
-		return energyGraph[t];
+		return this.energyGraph[t];
 	}
 
 	public void spendGas(int g) {
-		gas -= g;
+		this.gas -= g;
 	}
 
 	public double getScale() {
-		return scale;
+		return this.scale;
 	}
 
 	public void setScale(double scale) {
@@ -2033,7 +2195,7 @@ public class Model {
 	}
 
 	public int getScroll() {
-		return scroll;
+		return this.scroll;
 	}
 
 	public void setScroll(int scroll) {
@@ -2041,7 +2203,7 @@ public class Model {
 	}
 
 	public int getBorder() {
-		return border;
+		return this.border;
 	}
 
 	public void setBorder(int border) {
@@ -2049,10 +2211,10 @@ public class Model {
 	}
 
 	public int getSpacing() {
-		return spacing;
+		return this.spacing;
 	}
 	public int getThickness() {
-		return thickness;
+		return this.thickness;
 	}
 
 	public void setSpacing(int spacing) {
@@ -2060,10 +2222,10 @@ public class Model {
 	}
 
 	public int getMaxTime() {
-		return maxTime;
+		return this.maxTime;
 	}
 	public int getWidth() {
-		return width;
+		return this.width;
 	}
 
 	public void setWidth(int width) {
@@ -2071,106 +2233,139 @@ public class Model {
 	}
 
 	public int getHeight() {
-		return height;
+		return this.height;
 	}
 
 	public void setHeight(int height) {
 		this.height = height;
 	}
 
-	public String printTime() {
+	public String printTime()
+	{
+		int min = this.time / 60;
 		String s;
-		int min = time / 60;
-		if (min < 10) {
+		if (min < 10)
 			s = "0" + min;
-		} else {
-			s = "" + min;
+		else {
+			s = ""+min;
 		}
-		int sec = time - (60 * min);
-		if (sec < 10) {
-			s += ":0" + sec;
-		} else {
-			s += ":" + sec;
+		int sec = this.time - 60 * min;
+		if (sec < 10)
+			s = s + ":0" + sec;
+		else {
+			s = s + ":" + sec;
 		}
 		return s;
 	}
 
-	public String printTime(int i) {
-		String s;
+	public String printTime(int i)
+	{
 		int min = i / 60;
-		if (min < 10) {
+		String s;
+		if (min < 10)
 			s = "0" + min;
-		} else {
-			s = "" + min;
+		else {
+			s = ""+min;
 		}
-		int sec = i - (60 * min);
-		if (sec < 10) {
-			s += ":0" + sec;
-		} else {
-			s += ":" + sec;
+		int sec = i - 60 * min;
+		if (sec < 10)
+			s = s + ":0" + sec;
+		else {
+			s = s + ":" + sec;
 		}
 		return s;
 	}
 
 	public void deleteAction() {
-		for (int i = 0; i < actions.size(); i++) {
-			if (actions.get(i).isSelected()) {
-				actions.remove(i);
+		for (int i = 0; i < this.actions.size(); i++)
+			if (((SCAction)this.actions.get(i)).isSelected()) {
+				this.actions.remove(i);
 				i--;
 			}
-		}
 	}
 
-	public void changeScale(double d) {
-		scale += d;
-		if(scale<1.1) {
-			scale=1.1;
+	public void changeScale(double d)
+	{
+		this.scale += d;
+		if (this.scale < 1.1D) {
+			this.scale = 1.1D;
 		}
-		if(scale>6) {
-			scale=6;
-		}
+		if (this.scale > 6.0D)
+			this.scale = 6.0D;
 	}
 
-	public void scroll(int i) {
-		scroll+=i;
-		if(scroll<0) {
-			scroll=0;
-		}
+	public void scroll(int i)
+	{
+		this.scroll += i;
+		if (this.scroll < 0)
+			this.scroll = 0;
 	}
 
-	public boolean transferToGas() {
-		int f=3;
-		int base=-1;
-		for(int i = 0; i < bases.size(); i++) {
-			if(bases.get(i).isComplete() && bases.get(i).freeRefineries()<f && bases.get(i).freeRefineries()>0) {
-				base=i;
-				f=bases.get(i).freeRefineries();
+	public boolean transferOffGas()
+	{
+		int g = 0;
+		int base = -1;
+		for (int i = 0; i < this.bases.size(); i++) {
+			if (((Base)this.bases.get(i)).scvCountGas() > g) {
+				g = ((Base)this.bases.get(i)).scvCountGas();
+				base = i;
 			}
 		}
-		if(base>=0) {
-			if(bases.get(base).transferDroneToGas()) {
-				return true;
-			} else {
-				//				System.out.println("<Model> couldn't transfer drones for some reason");
-				return false;
-			}
-		} else {
-			//			System.out.println("<Model> Couldn't find a base!");
-			return false;
+
+		if (base >= 0)
+		{
+			return ((Base)this.bases.get(base)).transferSCVOffGas();
 		}
+
+		return false;
 	}
 
+	public boolean transferToGas()
+	{
+		int f = 3;
+		int base = -1;
+		for (int i = 0; i < this.bases.size(); i++) {
+			if ((((Base)this.bases.get(i)).isComplete()) && (((Base)this.bases.get(i)).freeRefineries() < f) && (((Base)this.bases.get(i)).freeRefineries() > 0)) {
+				base = i;
+				f = ((Base)this.bases.get(i)).freeRefineries();
+			}
+		}
+		if (base >= 0)
+		{
+			return ((Base)this.bases.get(base)).transferDroneToGas();
+		}
 
-	public String printBuild() {
-		String s="";
-		for(int t = 0;t < maxTime;t++) {
-			for(int i = 0;i < actions.size();i++) {
-				if(actions.get(i).getStartTime()==t) {
-					s+=printTime(t) + " - " + actions.get(i).getSupplyPoint() + " - " + actions.get(i).toString()+"\n";
+		return false;
+	}
+
+	public String printBuild()
+	{
+		String s = "";
+		for (int t = 0; t < this.maxTime; t++) {
+			for (int i = 0; i < this.actions.size(); i++) {
+				if (((SCAction)this.actions.get(i)).getStartTime() == t) {
+					s = s + printTime(t) + " - " + ((SCAction)this.actions.get(i)).getSupplyPoint() + " - " + ((SCAction)this.actions.get(i)).toString() + "\n";
 				}
 			}
 		}
 		return s;
 	}
 
+	public void selectNext() {
+		int i = 0;
+		int k = -1;
+		while (i < this.actions.size()) {
+			if (((SCAction)this.actions.get(i)).isSelected()) {
+				k = i;
+			}
+			i++;
+		}
+		if ((k >= 0) && (k == this.actions.size() - 1)) {
+			((SCAction)this.actions.get(k)).deselect();
+			((SCAction)this.actions.get(0)).select();
+		} else if (k >= 0) {
+			((SCAction)this.actions.get(k)).deselect();
+			((SCAction)this.actions.get(k + 1)).select();
+		}
+	}
 }

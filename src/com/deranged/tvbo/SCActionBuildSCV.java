@@ -1,35 +1,33 @@
-package com.deranged.tvbo;
-
-public class SCActionBuildSCV extends SCAction {
-
-	public SCActionBuildSCV(Model model, int startTime, int y) {
-		super(model, startTime, y, model.getTime("SCV"), "SCV");
-	}
-
-	public boolean execute() {
-		boolean f = true;
-
-		if(complete) {
-			f = false;
-		} else if(model.getMinerals()<model.getMineralCost(name)) {
-			f = false;
-			errorMsg = "MINERALS";
-		} else if(model.getFood(name)>0 && model.getFood()+model.getFood(name)>model.getSupply()) {
-			f=false;
-			errorMsg="SUPPLY BLOCKED";
-		} else if(!model.isFreeBase()){
-			f=false;
-			errorMsg="QUEUE";
-		} else if(!model.buildSCV()) {
-			f = false;
-			errorMsg = "UNKNOWN";
-		}
-		if(f) {
-			complete = true;
-		}
-		return f;
-
-
-	}
-
-}
+ package com.deranged.tvbo;
+ 
+ public class SCActionBuildSCV extends SCAction
+ {
+   public SCActionBuildSCV(Model model, int startTime, int y)
+   {
+     super(model, startTime, y, model.getTime("SCV"), "SCV");
+   }
+ 
+   public boolean execute() {
+     boolean f = true;
+ 
+     if (this.complete) {
+       f = false;
+     } else if (this.model.getMinerals() < this.model.getMineralCost(this.name)) {
+       f = false;
+       this.errorMsg = "MINERALS";
+     } else if ((this.model.getFood(this.name) > 0) && (this.model.getFood() + this.model.getFood(this.name) > this.model.getSupply())) {
+       f = false;
+       this.errorMsg = "SUPPLY BLOCKED";
+     } else if (!this.model.isFreeBase()) {
+       f = false;
+       this.errorMsg = "QUEUE";
+     } else if (!this.model.buildSCV()) {
+       f = false;
+       this.errorMsg = "UNKNOWN";
+     }
+     if (f) {
+       this.complete = true;
+     }
+     return f;
+   }
+ }

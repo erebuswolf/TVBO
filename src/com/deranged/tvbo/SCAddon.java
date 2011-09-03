@@ -1,47 +1,46 @@
-package com.deranged.tvbo;
-
-public class SCAddon extends SCStructure {
-
-	private String attachedTo;
-	
-	public SCAddon(Model model, String name) {
-		super(model, name);
-	}
-
-	public String getAttachedTo() {
-		return attachedTo;
-	}
-
-	public void setAttachedTo(String attachedTo) {
-		this.attachedTo = attachedTo;
-		//System.out.println("Attached to " + attachedTo);
-	}
-
-	public boolean detach() {
-		if(name.equals("TechLab") || name.equals("Reactor")) {
-			System.out.println(model.printTime() + "   <SCAddon> detaching "+name+" from "+attachedTo);
-			attachedTo="";
-			return true;
-		} else {
-			System.out.println(model.printTime() + "   <SCObject> Cannot detach " + name);
-			return false;
-		}
-		
-	}
-	public boolean attach(String building) {
-		if(name.equals("TechLab") || name.equals("Reactor")) {
-			System.out.println(model.printTime() + "   <SCAddon> attaching "+name+" to "+building);
-			attachedTo=building;
-			progress=0;
-			buildtime=3;
-			queue++;
-			return true;
-		} else {
-			System.out.println(model.printTime() + "   <SCObject> Cannot detach " + name);
-			return false;
-		}
-		
-	}
-
-	
-}
+ package com.deranged.tvbo;
+ 
+ import java.io.PrintStream;
+ 
+ public class SCAddon extends SCStructure
+ {
+   private String attachedTo;
+ 
+   public SCAddon(Model model, String name)
+   {
+     super(model, name);
+   }
+ 
+   public String getAttachedTo() {
+     return this.attachedTo;
+   }
+ 
+   public void setAttachedTo(String attachedTo) {
+     this.attachedTo = attachedTo;
+   }
+ 
+   public boolean detach()
+   {
+     if ((this.name.equals("TechLab")) || (this.name.equals("Reactor")))
+     {
+       this.attachedTo = "";
+       return true;
+     }
+     System.out.println(this.model.printTime() + "   <SCObject> Cannot detach " + this.name);
+     return false;
+   }
+ 
+   public boolean attach(String building)
+   {
+     if ((this.name.equals("TechLab")) || (this.name.equals("Reactor")))
+     {
+       this.attachedTo = building;
+       this.progress = 0;
+       this.buildtime = 3;
+       this.queue += 1;
+       return true;
+     }
+     System.out.println(this.model.printTime() + "   <SCObject> Cannot detach " + this.name);
+     return false;
+   }
+ }

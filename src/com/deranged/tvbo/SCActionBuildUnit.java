@@ -1,47 +1,48 @@
-package com.deranged.tvbo;
-
-public class SCActionBuildUnit extends SCAction {
-
-	public SCActionBuildUnit(Model model, int startTime, int y, String name) {
-		super(model, startTime, y, model.getTime(name), name);
-	}
-	
-	public boolean execute() {
-		boolean f = true;
-		String prereq = model.getPrereq(name); // eg armory for thor
-		String build = model.getBuild(name);   // factory for thor
-		String tech = model.getTech(name);   // eg techlab for thor
-		
-		if(complete) {
-			f = false;
-		} else if(prereq!=null && !model.isObjectComplete(prereq)) {
-			f = false;
-			errorMsg = "PREREQ";
-		} else if(prereq!=null && !model.isObjectComplete(build)) {
-			f = false;
-			errorMsg = "BUILD";
-		} else if(tech!=null && !model.hasAddon(build, tech)) {
-			f = false;
-			errorMsg = "TECHLAB";
-		} else if(model.getMinerals()<model.getMineralCost(name)) {
-			f = false;
-			errorMsg = "MINERALS";
-		} else if(!model.isAvailable(build)) {
-			f = false;
-			errorMsg = "QUEUE";
-		} else if(model.getGas() < model.getGasCost(name)) {
-			f = false;
-			errorMsg = "GAS";
-		} else if(model.getFood(name)>0 && model.getFood()+model.getFood(name)>model.getSupply()) {
-			f = false;
-			errorMsg = "SUPPLY BLOCKED";
-		} else if(!model.addUnitToQueue(name)) {
-			f = false;
-			errorMsg = "UNKNOWN";
-		}
-		if(f) {
-			complete = true;
-		}
-		return f;
-	}
-}
+ package com.deranged.tvbo;
+ 
+ public class SCActionBuildUnit extends SCAction
+ {
+   public SCActionBuildUnit(Model model, int startTime, int y, String name)
+   {
+     super(model, startTime, y, model.getTime(name), name);
+   }
+ 
+   public boolean execute() {
+     boolean f = true;
+     String prereq = this.model.getPrereq(this.name);
+     String build = this.model.getBuild(this.name);
+     String tech = this.model.getTech(this.name);
+ 
+     if (this.complete) {
+       f = false;
+     } else if ((prereq != null) && (!this.model.isObjectComplete(prereq))) {
+       f = false;
+       this.errorMsg = "PREREQ";
+     } else if ((prereq != null) && (!this.model.isObjectComplete(build))) {
+       f = false;
+       this.errorMsg = "BUILD";
+     } else if ((tech != null) && (!this.model.hasAddon(build, tech))) {
+       f = false;
+       this.errorMsg = "TECHLAB";
+     } else if (this.model.getMinerals() < this.model.getMineralCost(this.name)) {
+       f = false;
+       this.errorMsg = "MINERALS";
+     } else if (!this.model.isAvailable(build)) {
+       f = false;
+       this.errorMsg = "QUEUE";
+     } else if (this.model.getGas() < this.model.getGasCost(this.name)) {
+       f = false;
+       this.errorMsg = "GAS";
+     } else if ((this.model.getFood(this.name) > 0) && (this.model.getFood() + this.model.getFood(this.name) > this.model.getSupply())) {
+       f = false;
+       this.errorMsg = "SUPPLY BLOCKED";
+     } else if (!this.model.addUnitToQueue(this.name)) {
+       f = false;
+       this.errorMsg = "UNKNOWN";
+     }
+     if (f) {
+       this.complete = true;
+     }
+     return f;
+   }
+ }

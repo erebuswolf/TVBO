@@ -1,104 +1,101 @@
-package com.deranged.tvbo;
-
-public class MineralPatch extends Resource {
-
-	private int distance;
-	private Mule mule;
-
-	public MineralPatch(int r, int d) {
-		super(r);
-		scvsMining = new SCV[max];
-		distance = d;
-		// TODO Auto-generated constructor stub
-	}
-
-	public void update() {
-		super.update();
-		if(mule!=null) {
-			mule.update();
-			if(mule.getLife()==0) {
-				mule=null;
-			}
-		}
-	}
-
-	public boolean addSCV(SCV s) {
-		if(scvs<max) {
-			if(scvsMining[scvs]==null) {
-				//s.setJob(0);
-				s.setResource(this);
-				scvsMining[scvs]=s;
-				scvs++;
-				setJobtimes();
-				return true;
-			} else {
-				return true;
-			}
-		} else {
-			return false;
-		}
-	}
-
-	public void setJobtimes() {
-		double n=0;
-		if(distance==1) {
-			if(scvs==1) {
-				n = (20.0/3.0);  // 6.67
-			} else if(scvs==2) {
-				n = (20.0/3.0);  // 6.67
-			} else if(scvs==3) {
-				n = (270.0/31.0);// 8.7097
-			} else {
-				System.out.println("Error: <MineralPatch:setJobtimes> Too many scvs on this patch!");
-			}
-		} else if(distance==2) {
-			if(scvs==1) {
-				n = (15.0/2.0);  // 7.5
-			} else if(scvs==2) {
-				n = (15.0/2.0);  // 7.5
-			} else if(scvs==3) {
-				n = (270.0/31.0);// 8.7097
-			} else {
-				System.out.println("Error: <MineralPatch:setJobtimes> Too many scvs on this patch!");
-			}
-		} else if(distance==3) {
-			if(scvs==1) {
-				n = (360.0/47.0); // 7.6
-			} else if(scvs==2) {
-				n = (360.0/47.0); // 7.6
-			} else if(scvs==3) {
-				n = (270.0/31.0); // 8.7097
-			} else {
-				System.out.println("Error: <MineralPatch:setJobtimes> Too many scvs on this patch!");
-			}
-		} else {
-			System.out.println("Error: <MineralPatch:setJobtimes> Invalid distance parameter");
-		}
-		for(int i = 0;i < max;i++) {
-			if(scvsMining[i]!=null) {
-				scvsMining[i].setJobtime(n, 0);
-			}
-		}
-	}
-
-	public boolean hasMule() {
-		if(mule!=null && mule.getLife()>0) {
-			return true;
-		} else {
-			return false;
-		}
-	}
-
-	public void addMule(Model model) {
-		mule = new Mule(model);
-		mule.setResource(this);
-		if(distance==1) {
-			mule.setJobtime(9, 0);
-		} else if(distance==2) {
-			mule.setJobtime(9.5, 0);
-		} else if(distance==3) {
-			mule.setJobtime(10, 0);
-		}
-
-	}
-}
+ package com.deranged.tvbo;
+ 
+ import java.io.PrintStream;
+ 
+ public class MineralPatch extends Resource
+ {
+   private int distance;
+   private Mule mule;
+ 
+   public MineralPatch(int r, int d)
+   {
+     super(r);
+     this.scvsMining = new SCV[this.max];
+     this.distance = d;
+   }
+ 
+   public void update()
+   {
+     super.update();
+     if (this.mule != null) {
+       this.mule.update();
+       if (this.mule.getLife() == 0)
+         this.mule = null;
+     }
+   }
+ 
+   public boolean addSCV(SCV s)
+   {
+     if (this.scvs < this.max) {
+       if (this.scvsMining[this.scvs] == null)
+       {
+         s.setResource(this);
+         this.scvsMining[this.scvs] = s;
+         this.scvs += 1;
+         setJobtimes();
+         return true;
+       }
+       return true;
+     }
+ 
+     return false;
+   }
+ 
+   public void setJobtimes()
+   {
+     double n = 0.0D;
+     if (this.distance == 1) {
+       if (this.scvs == 1)
+         n = 6.666666666666667D;
+       else if (this.scvs == 2)
+         n = 6.666666666666667D;
+       else if (this.scvs == 3)
+         n = 8.709677419354838D;
+       else
+         System.out.println("Error: <MineralPatch:setJobtimes> Too many scvs on this patch!");
+     }
+     else if (this.distance == 2) {
+       if (this.scvs == 1)
+         n = 7.5D;
+       else if (this.scvs == 2)
+         n = 7.5D;
+       else if (this.scvs == 3)
+         n = 8.709677419354838D;
+       else
+         System.out.println("Error: <MineralPatch:setJobtimes> Too many scvs on this patch!");
+     }
+     else if (this.distance == 3) {
+       if (this.scvs == 1)
+         n = 7.659574468085107D;
+       else if (this.scvs == 2)
+         n = 7.659574468085107D;
+       else if (this.scvs == 3)
+         n = 8.709677419354838D;
+       else
+         System.out.println("Error: <MineralPatch:setJobtimes> Too many scvs on this patch!");
+     }
+     else {
+       System.out.println("Error: <MineralPatch:setJobtimes> Invalid distance parameter");
+     }
+     for (int i = 0; i < this.max; i++)
+       if (this.scvsMining[i] != null)
+         this.scvsMining[i].setJobtime(n, 0);
+   }
+ 
+   public boolean hasMule()
+   {
+     return (this.mule != null) && (this.mule.getLife() > 0);
+   }
+ 
+   public void addMule(Model model)
+   {
+     this.mule = new Mule(model);
+     this.mule.setResource(this);
+     if (this.distance == 1)
+       this.mule.setJobtime(9.0D, 0);
+     else if (this.distance == 2)
+       this.mule.setJobtime(9.5D, 0);
+     else if (this.distance == 3)
+       this.mule.setJobtime(10.0D, 0);
+   }
+ }

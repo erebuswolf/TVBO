@@ -1,75 +1,72 @@
 package com.deranged.tvbo;
-//git@github.com:cboursnell/TVBO.git
 
-// TODO Add support for reactor. Possibly remove progress and buildtime for making units and research
-//        and use only the progress of 'constructing' and 'constructing2'
-//      Add maxQueueLength which is 1 for normal and 2 for with reactor
-//
-//      Add SCActionScout that takes 1 minute and uses up 1 SCV
-//      ADD SCActionScan that uses up 50 energy
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.EventQueue;
-import java.awt.Toolkit;
-
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import java.awt.SystemColor;
-import javax.swing.JLabel;
-import javax.swing.JComboBox;
-import javax.swing.JButton;
-import javax.swing.JTextField;
-import javax.swing.JTextArea;
-import javax.swing.UIManager;
-
-import javax.swing.GroupLayout;
-import javax.swing.GroupLayout.Alignment;
-import javax.swing.LayoutStyle.ComponentPlacement;
-import javax.swing.border.BevelBorder;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 import java.awt.Font;
+import java.awt.SystemColor;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
+import java.io.File;
+import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Alignment;
+import javax.swing.GroupLayout.ParallelGroup;
+import javax.swing.GroupLayout.SequentialGroup;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextArea;
+import javax.swing.LayoutStyle;
+import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.UIManager;
+import javax.swing.border.BevelBorder;
 
-public class TVBO {
-
+public class TVBO
+{
 	private Model model;
+	private JFrame frame;
+	private View viewPanel;
+	private JPanel sidePanel;
+	private JPanel unitsPanel;
+	private JLabel unitsLabel;
+	private JComboBox unitsDropDown;
+	private JButton unitsAddButton;
+	private JPanel buildingsPanel;
+	private JLabel buildingsLabel;
+	private JComboBox buildingsDropDown;
+	private JButton buildingsAddButton;
+	private JPanel researchPanel;
+	private JLabel researchLabel;
+	private JComboBox researchDropDown;
+	private JButton researchAddButton;
+	private JPanel totalsPanel;
+	private JLabel totalsLabel;
+	private JTextArea textArea;
+	private JPanel buttonsPanel;
+	private JButton loadButton;
+	private JButton saveButton;
+	private JButton clearButton;
+	private JButton printButton;
+	private int frameWidth = 1600;
+	private int frameHeight = 1000;
+	JFileChooser fc;
+	File cwd;
 
-	private JFrame		frame;
-	private View		 viewPanel;
-	private JPanel		 sidePanel;
-	private JPanel		   unitsPanel;
-	private JLabel 		    unitsLabel;
-	private JComboBox	    unitsDropDown;
-	private JButton		    unitsAddButton;
-	private JPanel		   buildingsPanel;
-	private JLabel 		    buildingsLabel;
-	private JComboBox	    buildingsDropDown;
-	private JButton		    buildingsAddButton;
-	private JPanel		   researchPanel;
-	private JLabel 		    researchLabel;
-	private JComboBox	    researchDropDown;
-	private JButton		    researchAddButton;
-	private JPanel		   totalsPanel;
-	private JLabel		    totalsLabel;
-	private JTextArea	    textArea;
-	private JPanel		   buttonsPanel;
-	private JTextField	    textField;
-	private JButton		    loadButton;
-	private JButton		    saveButton;
-	private JButton		    clearButton;
-	private JButton		    printButton;
-
-	private int frameWidth=1300;
-	private int frameHeight=1000;
-
-	public static void main(String[] args) {
-		try {
+	public static void main(String[] args)
+	{
+		try
+		{
 			UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
 		} catch (Throwable e) {
 			e.printStackTrace();
@@ -82,439 +79,459 @@ public class TVBO {
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
-			}
-		});
+			} } );
 	}
 
 	public TVBO() {
-		model = new Model();
+		this.model = new Model();
 		initialize();
-		model.setup();
-		model.play();
+		this.model.setup();
+		this.model.play();
 	}
 
 	private void initialize() {
-		frame = new JFrame();
-		frame.getContentPane().setBackground(SystemColor.control);
-		viewPanel = new View(model);
-		frame.setTitle("Terran Visual Build Order Designer - Cyanophage");
+		this.fc = new JFileChooser();
+		this.frame = new JFrame();
+		this.frame.getContentPane().setBackground(SystemColor.control);
+		this.viewPanel = new View(this.model);
+		this.frame.setTitle("Terran Visual Build Order Designer - Cyanophage (ErebusWolf Fixes)");
 
-		sidePanel = new JPanel();
-		sidePanel.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
-		GroupLayout groupLayout = new GroupLayout(frame.getContentPane());
+		this.sidePanel = new JPanel();
+		this.sidePanel.setBorder(new BevelBorder(1, null, null, null, null));
+		GroupLayout groupLayout = new GroupLayout(this.frame.getContentPane());
 		groupLayout.setHorizontalGroup(
-				groupLayout.createParallelGroup(Alignment.TRAILING)
+				groupLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
 				.addGroup(groupLayout.createSequentialGroup()
 						.addGap(3)
-						.addComponent(viewPanel, GroupLayout.DEFAULT_SIZE, 1035, Short.MAX_VALUE)
+						.addComponent(this.viewPanel, -1, 1035, 32767)
 						.addGap(3)
-						.addComponent(sidePanel, GroupLayout.PREFERRED_SIZE, 213, GroupLayout.PREFERRED_SIZE)
-						.addGap(3))
-				);
+						.addComponent(this.sidePanel, -2, 213, -2)
+						.addGap(3)));
+
 		groupLayout.setVerticalGroup(
-				groupLayout.createParallelGroup(Alignment.TRAILING)
+				groupLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
 				.addGroup(groupLayout.createSequentialGroup()
 						.addGap(3)
-						.addGroup(groupLayout.createParallelGroup(Alignment.TRAILING)
-								.addComponent(viewPanel, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 841, Short.MAX_VALUE)
-								.addComponent(sidePanel, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 841, Short.MAX_VALUE))
-								.addGap(3))
-				);
-		unitsPanel = new JPanel();
-		unitsPanel.setBorder(null);
-		unitsPanel.setBackground(SystemColor.control);
-		buildingsPanel = new JPanel();
-		buildingsPanel.setBorder(null);
-		buildingsPanel.setBackground(SystemColor.control);
-		researchPanel = new JPanel();
-		researchPanel.setBorder(null);
-		researchPanel.setBackground(SystemColor.control);
-		buttonsPanel = new JPanel();
-		buttonsPanel.setBackground(SystemColor.control);
-		totalsPanel = new JPanel();
-		totalsPanel.setBorder(null);
-		totalsPanel.setBackground(SystemColor.control);
-		GroupLayout gl_sidePanel = new GroupLayout(sidePanel);
+						.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+								.addComponent(this.viewPanel, GroupLayout.Alignment.LEADING, -1, 841, 32767)
+								.addComponent(this.sidePanel, GroupLayout.Alignment.LEADING, -1, 841, 32767))
+								.addGap(3)));
+
+		this.unitsPanel = new JPanel();
+		this.unitsPanel.setBorder(null);
+		this.unitsPanel.setBackground(SystemColor.control);
+		this.buildingsPanel = new JPanel();
+		this.buildingsPanel.setBorder(null);
+		this.buildingsPanel.setBackground(SystemColor.control);
+		this.researchPanel = new JPanel();
+		this.researchPanel.setBorder(null);
+		this.researchPanel.setBackground(SystemColor.control);
+		this.buttonsPanel = new JPanel();
+		this.buttonsPanel.setBackground(SystemColor.control);
+		this.totalsPanel = new JPanel();
+		this.totalsPanel.setBorder(null);
+		this.totalsPanel.setBackground(SystemColor.control);
+		GroupLayout gl_sidePanel = new GroupLayout(this.sidePanel);
 		gl_sidePanel.setHorizontalGroup(
-				gl_sidePanel.createParallelGroup(Alignment.LEADING)
+				gl_sidePanel.createParallelGroup(GroupLayout.Alignment.LEADING)
 				.addGroup(gl_sidePanel.createSequentialGroup()
 						.addGap(3)
-						.addGroup(gl_sidePanel.createParallelGroup(Alignment.LEADING)
-								.addComponent(unitsPanel, GroupLayout.DEFAULT_SIZE, 203, Short.MAX_VALUE)
+						.addGroup(gl_sidePanel.createParallelGroup(GroupLayout.Alignment.LEADING)
+								.addComponent(this.unitsPanel, -1, 203, 32767)
 								.addGroup(gl_sidePanel.createSequentialGroup()
-										.addComponent(buildingsPanel, GroupLayout.DEFAULT_SIZE, 203, Short.MAX_VALUE)
-										.addPreferredGap(ComponentPlacement.RELATED))
+										.addComponent(this.buildingsPanel, -1, 203, 32767)
+										.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED))
 										.addGroup(gl_sidePanel.createSequentialGroup()
-												.addComponent(researchPanel, GroupLayout.DEFAULT_SIZE, 203, Short.MAX_VALUE)
-												.addPreferredGap(ComponentPlacement.RELATED))
+												.addComponent(this.researchPanel, -1, 203, 32767)
+												.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED))
 												.addGroup(gl_sidePanel.createSequentialGroup()
-														.addComponent(buttonsPanel, GroupLayout.DEFAULT_SIZE, 203, Short.MAX_VALUE)
-														.addPreferredGap(ComponentPlacement.RELATED))
+														.addComponent(this.buttonsPanel, -1, 203, 32767)
+														.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED))
 														.addGroup(gl_sidePanel.createSequentialGroup()
-																.addComponent(totalsPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-																.addPreferredGap(ComponentPlacement.RELATED)))
-																.addGap(3))
-				);
+																.addComponent(this.totalsPanel, -2, -1, 32767)
+																.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)))
+																.addGap(3)));
+
 		gl_sidePanel.setVerticalGroup(
-				gl_sidePanel.createParallelGroup(Alignment.LEADING)
+				gl_sidePanel.createParallelGroup(GroupLayout.Alignment.LEADING)
 				.addGroup(gl_sidePanel.createSequentialGroup()
 						.addGap(3)
-						.addComponent(unitsPanel, GroupLayout.PREFERRED_SIZE, 90, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.unitsPanel, -2, 90, -2)
 						.addGap(3)
-						.addComponent(buildingsPanel, GroupLayout.PREFERRED_SIZE, 90, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.buildingsPanel, -2, 90, -2)
 						.addGap(3)
-						.addComponent(researchPanel, GroupLayout.PREFERRED_SIZE, 90, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.researchPanel, -2, 90, -2)
 						.addGap(3)
-						.addComponent(totalsPanel, GroupLayout.DEFAULT_SIZE, 426, Short.MAX_VALUE)
+						.addComponent(this.totalsPanel, -1, 564, 32767)
 						.addGap(3)
-						.addComponent(buttonsPanel, GroupLayout.PREFERRED_SIZE, 100, GroupLayout.PREFERRED_SIZE)
-						.addGap(3))
-				);
-		totalsLabel = new JLabel("Totals");
-		textArea = new JTextArea();
-		textArea.setFont(new Font("Monospaced", Font.PLAIN, 11));
-		textArea.setBackground(SystemColor.control);
-		textArea.setLineWrap(true);
-		textArea.setEditable(false);
-		GroupLayout gl_totalsPanel = new GroupLayout(totalsPanel);
+						.addComponent(this.buttonsPanel, -2, 65, -2)
+						.addGap(3)));
+
+		this.totalsLabel = new JLabel("Totals");
+		this.textArea = new JTextArea();
+		this.textArea.setFont(new Font("Monospaced", 0, 11));
+		this.textArea.setBackground(SystemColor.control);
+		this.textArea.setLineWrap(true);
+		this.textArea.setEditable(false);
+		GroupLayout gl_totalsPanel = new GroupLayout(this.totalsPanel);
 		gl_totalsPanel.setHorizontalGroup(
-				gl_totalsPanel.createParallelGroup(Alignment.LEADING)
+				gl_totalsPanel.createParallelGroup(GroupLayout.Alignment.LEADING)
 				.addGroup(gl_totalsPanel.createSequentialGroup()
 						.addContainerGap()
-						.addGroup(gl_totalsPanel.createParallelGroup(Alignment.LEADING)
-								.addComponent(totalsLabel)
-								.addComponent(textArea))
-								.addContainerGap())
-				);
+						.addGroup(gl_totalsPanel.createParallelGroup(GroupLayout.Alignment.LEADING)
+								.addComponent(this.totalsLabel)
+								.addComponent(this.textArea))
+								.addContainerGap()));
+
 		gl_totalsPanel.setVerticalGroup(
-				gl_totalsPanel.createParallelGroup(Alignment.LEADING)
+				gl_totalsPanel.createParallelGroup(GroupLayout.Alignment.LEADING)
 				.addGroup(gl_totalsPanel.createSequentialGroup()
 						.addContainerGap()
-						.addComponent(totalsLabel)
-						.addPreferredGap(ComponentPlacement.RELATED)
-						.addComponent(textArea, GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-						.addGap(3))
-				);
-		totalsPanel.setLayout(gl_totalsPanel);
-		textField = new JTextField();
-		textField.setColumns(10);
-		loadButton = new JButton("Load");
-		saveButton = new JButton("Save");
-		clearButton = new JButton("Clear");
-		clearButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				model.clear();
-				viewPanel.repaint();
-			}
-		});
-		printButton = new JButton("Print");
-		// BUTTONS PANEL //////////////////////////////////////////////////////////////////////////
-		GroupLayout gl_buttonsPanel = new GroupLayout(buttonsPanel);
+						.addComponent(this.totalsLabel)
+						.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+						.addComponent(this.textArea, -2, 0, 32767)
+						.addGap(3)));
+
+		this.totalsPanel.setLayout(gl_totalsPanel);
+		this.loadButton = new JButton("Load");
+		this.saveButton = new JButton("Save");
+		this.clearButton = new JButton("Clear");
+		this.printButton = new JButton("Print");
+
+		GroupLayout gl_buttonsPanel = new GroupLayout(this.buttonsPanel);
 		gl_buttonsPanel.setHorizontalGroup(
-				gl_buttonsPanel.createParallelGroup(Alignment.LEADING)
+				gl_buttonsPanel.createParallelGroup(GroupLayout.Alignment.LEADING)
 				.addGroup(gl_buttonsPanel.createSequentialGroup()
 						.addContainerGap()
-						.addGroup(gl_buttonsPanel.createParallelGroup(Alignment.LEADING)
-								.addComponent(textField, GroupLayout.DEFAULT_SIZE, 75, Short.MAX_VALUE)
+						.addGroup(gl_buttonsPanel.createParallelGroup(GroupLayout.Alignment.LEADING)
 								.addGroup(gl_buttonsPanel.createSequentialGroup()
-										.addComponent(loadButton, GroupLayout.PREFERRED_SIZE, 70, GroupLayout.PREFERRED_SIZE)
-										.addPreferredGap(ComponentPlacement.RELATED)
-										.addComponent(saveButton, GroupLayout.PREFERRED_SIZE, 70, GroupLayout.PREFERRED_SIZE)
+										.addComponent(this.loadButton, -2, 70, -2)
+										.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+										.addComponent(this.saveButton, -2, 70, -2)
 										.addGap(27))
 										.addGroup(gl_buttonsPanel.createSequentialGroup()
-												.addComponent(clearButton, GroupLayout.PREFERRED_SIZE, 70, GroupLayout.PREFERRED_SIZE)
-												.addPreferredGap(ComponentPlacement.RELATED)
-												.addComponent(printButton, GroupLayout.PREFERRED_SIZE, 70, GroupLayout.PREFERRED_SIZE)))
-												.addContainerGap())
-				);
+												.addComponent(this.clearButton, -2, 70, -2)
+												.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+												.addComponent(this.printButton, -2, 70, -2)))
+												.addContainerGap(47, 32767)));
+
 		gl_buttonsPanel.setVerticalGroup(
-				gl_buttonsPanel.createParallelGroup(Alignment.LEADING)
+				gl_buttonsPanel.createParallelGroup(GroupLayout.Alignment.LEADING)
 				.addGroup(gl_buttonsPanel.createSequentialGroup()
-						.addContainerGap()
-						.addComponent(textField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addPreferredGap(ComponentPlacement.RELATED)
-						.addGroup(gl_buttonsPanel.createParallelGroup(Alignment.BASELINE)
-								.addComponent(loadButton)
-								.addComponent(saveButton))
-								.addPreferredGap(ComponentPlacement.RELATED)
-								.addGroup(gl_buttonsPanel.createParallelGroup(Alignment.BASELINE)
-										.addComponent(clearButton)
-										.addComponent(printButton))
-										.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-				);
-		buttonsPanel.setLayout(gl_buttonsPanel);
-		// UNITS PANEL ////////////////////////////////////////////////////////////////////////////
-		unitsLabel = new JLabel("Units");
-		unitsDropDown = new JComboBox(model.getUnitOptions());
-		unitsAddButton = new JButton("Add");
-		GroupLayout gl_unitsPanel = new GroupLayout(unitsPanel);
+						.addGap(6)
+						.addGroup(gl_buttonsPanel.createParallelGroup(GroupLayout.Alignment.BASELINE)
+								.addComponent(this.loadButton)
+								.addComponent(this.saveButton))
+								.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+								.addGroup(gl_buttonsPanel.createParallelGroup(GroupLayout.Alignment.BASELINE)
+										.addComponent(this.clearButton)
+										.addComponent(this.printButton))
+										.addContainerGap(-1, 32767)));
+
+		this.buttonsPanel.setLayout(gl_buttonsPanel);
+
+		this.unitsLabel = new JLabel("Units");
+		this.unitsDropDown = new JComboBox(this.model.getUnitOptions());
+		this.unitsAddButton = new JButton("Add");
+		GroupLayout gl_unitsPanel = new GroupLayout(this.unitsPanel);
 		gl_unitsPanel.setHorizontalGroup(
-				gl_unitsPanel.createParallelGroup(Alignment.LEADING)
+				gl_unitsPanel.createParallelGroup(GroupLayout.Alignment.LEADING)
 				.addGroup(gl_unitsPanel.createSequentialGroup()
 						.addContainerGap()
-						.addGroup(gl_unitsPanel.createParallelGroup(Alignment.LEADING)
-								.addComponent(unitsLabel)
-								.addComponent(unitsDropDown, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-								.addComponent(unitsAddButton, Alignment.TRAILING))
-								.addContainerGap())
-				);
+						.addGroup(gl_unitsPanel.createParallelGroup(GroupLayout.Alignment.LEADING)
+								.addComponent(this.unitsLabel)
+								.addComponent(this.unitsDropDown, 0, -1, 32767)
+								.addComponent(this.unitsAddButton, GroupLayout.Alignment.TRAILING))
+								.addContainerGap()));
+
 		gl_unitsPanel.setVerticalGroup(
-				gl_unitsPanel.createParallelGroup(Alignment.LEADING)
+				gl_unitsPanel.createParallelGroup(GroupLayout.Alignment.LEADING)
 				.addGroup(gl_unitsPanel.createSequentialGroup()
 						.addContainerGap()
-						.addComponent(unitsLabel)
-						.addPreferredGap(ComponentPlacement.RELATED)
-						.addComponent(unitsDropDown, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addPreferredGap(ComponentPlacement.RELATED)
-						.addComponent(unitsAddButton)
-						.addContainerGap(20, Short.MAX_VALUE))
-				);
-		unitsPanel.setLayout(gl_unitsPanel);
+						.addComponent(this.unitsLabel)
+						.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+						.addComponent(this.unitsDropDown, -2, -1, -2)
+						.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+						.addComponent(this.unitsAddButton)
+						.addContainerGap(20, 32767)));
 
-		// BUILDINGS PANEL ////////////////////////////////////////////////////////////////////////
-		buildingsLabel = new JLabel("Buildings");
-		buildingsDropDown = new JComboBox(model.getBuildingOptions());
-		buildingsAddButton = new JButton("Add");
-		GroupLayout gl_buildingsPanel = new GroupLayout(buildingsPanel);
+		this.unitsPanel.setLayout(gl_unitsPanel);
+
+		this.buildingsLabel = new JLabel("Buildings");
+		this.buildingsDropDown = new JComboBox(this.model.getBuildingOptions());
+		this.buildingsAddButton = new JButton("Add");
+		GroupLayout gl_buildingsPanel = new GroupLayout(this.buildingsPanel);
 		gl_buildingsPanel.setHorizontalGroup(
-				gl_buildingsPanel.createParallelGroup(Alignment.LEADING)
+				gl_buildingsPanel.createParallelGroup(GroupLayout.Alignment.LEADING)
 				.addGroup(gl_buildingsPanel.createSequentialGroup()
 						.addContainerGap()
-						.addGroup(gl_buildingsPanel.createParallelGroup(Alignment.LEADING)
-								.addComponent(buildingsLabel)
-								.addComponent(buildingsDropDown, 0, 208, Short.MAX_VALUE)
-								.addComponent(buildingsAddButton, Alignment.TRAILING))
-								.addContainerGap())
-				);
+						.addGroup(gl_buildingsPanel.createParallelGroup(GroupLayout.Alignment.LEADING)
+								.addComponent(this.buildingsLabel)
+								.addComponent(this.buildingsDropDown, 0, 208, 32767)
+								.addComponent(this.buildingsAddButton, GroupLayout.Alignment.TRAILING))
+								.addContainerGap()));
+
 		gl_buildingsPanel.setVerticalGroup(
-				gl_buildingsPanel.createParallelGroup(Alignment.LEADING)
+				gl_buildingsPanel.createParallelGroup(GroupLayout.Alignment.LEADING)
 				.addGroup(gl_buildingsPanel.createSequentialGroup()
 						.addContainerGap()
-						.addComponent(buildingsLabel)
-						.addPreferredGap(ComponentPlacement.RELATED)
-						.addComponent(buildingsDropDown, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addPreferredGap(ComponentPlacement.RELATED)
-						.addComponent(buildingsAddButton)
-						.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-				);
-		buildingsPanel.setLayout(gl_buildingsPanel);
+						.addComponent(this.buildingsLabel)
+						.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+						.addComponent(this.buildingsDropDown, -2, -1, -2)
+						.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+						.addComponent(this.buildingsAddButton)
+						.addContainerGap(-1, 32767)));
 
-		// RESEARCH PANEL ////////////////////////////////////////////////////////////////////////
-		researchLabel = new JLabel("Research");
-		researchDropDown = new JComboBox(model.getResearchOptions());
-		researchAddButton = new JButton("Add");
-		GroupLayout gl_researchPanel = new GroupLayout(researchPanel);
+		this.buildingsPanel.setLayout(gl_buildingsPanel);
+
+		this.researchLabel = new JLabel("Research");
+		this.researchDropDown = new JComboBox(this.model.getResearchOptions());
+		this.researchAddButton = new JButton("Add");
+		GroupLayout gl_researchPanel = new GroupLayout(this.researchPanel);
 		gl_researchPanel.setHorizontalGroup(
-				gl_researchPanel.createParallelGroup(Alignment.LEADING)
+				gl_researchPanel.createParallelGroup(GroupLayout.Alignment.LEADING)
 				.addGroup(gl_researchPanel.createSequentialGroup()
 						.addContainerGap()
-						.addGroup(gl_researchPanel.createParallelGroup(Alignment.LEADING)
-								.addComponent(researchLabel)
-								.addComponent(researchDropDown, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-								.addComponent(researchAddButton, Alignment.TRAILING))
-								.addContainerGap())
-				);
+						.addGroup(gl_researchPanel.createParallelGroup(GroupLayout.Alignment.LEADING)
+								.addComponent(this.researchLabel)
+								.addComponent(this.researchDropDown, 0, -1, 32767)
+								.addComponent(this.researchAddButton, GroupLayout.Alignment.TRAILING))
+								.addContainerGap()));
+
 		gl_researchPanel.setVerticalGroup(
-				gl_researchPanel.createParallelGroup(Alignment.LEADING)
+				gl_researchPanel.createParallelGroup(GroupLayout.Alignment.LEADING)
 				.addGroup(gl_researchPanel.createSequentialGroup()
 						.addContainerGap()
-						.addComponent(researchLabel)
-						.addPreferredGap(ComponentPlacement.RELATED)
-						.addComponent(researchDropDown, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addPreferredGap(ComponentPlacement.RELATED)
-						.addComponent(researchAddButton)
-						.addContainerGap(20, Short.MAX_VALUE))
-				);
-		researchPanel.setLayout(gl_researchPanel);
+						.addComponent(this.researchLabel)
+						.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+						.addComponent(this.researchDropDown, -2, -1, -2)
+						.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+						.addComponent(this.researchAddButton)
+						.addContainerGap(20, 32767)));
 
-		sidePanel.setLayout(gl_sidePanel);
-		frame.getContentPane().setLayout(groupLayout);
-		frame.setResizable(true);
-		frame.setMinimumSize(new Dimension(800, 500));
-		Toolkit toolkit =  Toolkit.getDefaultToolkit ();
+		this.researchPanel.setLayout(gl_researchPanel);
+
+		this.sidePanel.setLayout(gl_sidePanel);
+		this.frame.getContentPane().setLayout(groupLayout);
+		this.frame.setResizable(true);
+		this.frame.setMinimumSize(new Dimension(800, 500));
+		Toolkit toolkit = Toolkit.getDefaultToolkit();
 		Dimension dim = toolkit.getScreenSize();
-		if(dim.width<frameWidth) {
-			frameWidth=dim.width;
+		if (dim.width < this.frameWidth) {
+			this.frameWidth = dim.width;
 		}
-		if(dim.height<frameHeight) {
-			frameHeight=dim.height;
+		if (dim.height < this.frameHeight) {
+			this.frameHeight = dim.height;
 		}
-		frame.setBounds(0, 0, frameWidth, frameHeight);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		// EVENT HANDLERS /////////////////////////////////////////////////////////////////////////
+		this.frame.setBounds(0, 0, this.frameWidth, this.frameHeight);
+		this.frame.setDefaultCloseOperation(3);
 
-		frame.addComponentListener(new ComponentAdapter() {
-			@Override
+		this.frame.addComponentListener(new ComponentAdapter()
+		{
 			public void componentResized(ComponentEvent e) {
-				model.setWidth(viewPanel.getWidth());
-				model.setHeight(viewPanel.getHeight());
-				//System.out.println(model.getWidth() +" x "+model.getHeight());
+				TVBO.this.model.setWidth(TVBO.this.viewPanel.getWidth());
+				TVBO.this.model.setHeight(TVBO.this.viewPanel.getHeight());
 			}
 		});
-		printButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				//BuildOrderPopup p = new BuildOrderPopup(model.printBuild());
-				//p.setVisible(true);
-				Popup p = new Popup(model.printBuild());
+		this.printButton.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				Popup p = new Popup(TVBO.this.model.printBuild());
 				p.setVisible(true);
 			}
 		});
-		
-		viewPanel.addMouseListener(new MouseAdapter() {
+		this.viewPanel.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e) {
-				if(e.isShiftDown()) {
-					model.selectMultipleAction(e.getX(), e.getY());
-				} else if(e.isControlDown()){
-					model.selectAllActions(e.getX(), e.getY());
-				} else {
-					model.selectAction(e.getX(), e.getY());
+				if(e.getButton()==1){
+					if ((e.getX() >= TVBO.this.model.getWidth() - TVBO.this.model.getBorder() - 30) && 
+							(e.getY() >= TVBO.this.model.getHeight() - TVBO.this.model.getBorder() + 5) && 
+							(e.getX() <= TVBO.this.model.getWidth() - TVBO.this.model.getBorder()) && 
+							(e.getY() <= TVBO.this.model.getHeight() - 5)) {
+						TVBO.this.model.scroll(30);
+						TVBO.this.viewPanel.repaint();
+					} else if ((e.getX() >= TVBO.this.model.getWidth() - TVBO.this.model.getBorder() - 65) && 
+							(e.getY() >= TVBO.this.model.getHeight() - TVBO.this.model.getBorder() + 5) && 
+							(e.getX() <= TVBO.this.model.getWidth() - TVBO.this.model.getBorder() - 35) && 
+							(e.getY() <= TVBO.this.model.getHeight() - 5)) {
+						TVBO.this.model.scroll(-30);
+						TVBO.this.viewPanel.repaint();
+					} else if ((e.getX() >= TVBO.this.model.getWidth() - TVBO.this.model.getBorder() - 110) && 
+							(e.getY() >= TVBO.this.model.getHeight() - TVBO.this.model.getBorder() + 5) && 
+							(e.getX() <= TVBO.this.model.getWidth() - TVBO.this.model.getBorder() - 80) && 
+							(e.getY() <= TVBO.this.model.getHeight() - 5)) {
+						TVBO.this.model.changeScale(0.1D);
+						TVBO.this.viewPanel.repaint();
+					} else if ((e.getX() >= TVBO.this.model.getWidth() - TVBO.this.model.getBorder() - 145) && 
+							(e.getY() >= TVBO.this.model.getHeight() - TVBO.this.model.getBorder() + 5) && 
+							(e.getX() <= TVBO.this.model.getWidth() - TVBO.this.model.getBorder() - 115) && 
+							(e.getY() <= TVBO.this.model.getHeight() - 5)) {
+						TVBO.this.model.changeScale(-0.1D);
+						TVBO.this.viewPanel.repaint();
+					} else if (e.isShiftDown()) {
+						TVBO.this.model.selectMultipleAction(e.getX(), e.getY());
+					} else if (e.isControlDown()) {
+						TVBO.this.model.selectAllActions(e.getX(), e.getY());
+					}else{
+						TVBO.this.model.selectAction(e.getX(), e.getY());
+					}
 				}
-				viewPanel.requestFocus();
-				viewPanel.repaint();
-				textArea.setText(model.setTotalsText());
+				else if (e.getButton() == 3) {
+					TVBO.this.model.rightClick(e.getX(), e.getY());
+				} 
+
+				TVBO.this.viewPanel.requestFocus();
+				TVBO.this.viewPanel.repaint();
+				TVBO.this.textArea.setText(TVBO.this.model.setTotalsText());
 			}
+
 			public void mousePressed(MouseEvent e) {
-				//System.out.println("Mouse button goes down");
-				viewPanel.requestFocus();
-				model.startMarquee(e.getX(), e.getY());
+
+				if(e.getButton()==1){
+					if(!e.isShiftDown()){
+						TVBO.this.model.selectNoActions();
+					}
+					TVBO.this.viewPanel.requestFocus();
+					TVBO.this.model.startMarquee(e.getX(), e.getY());
+				}
 			}
+
 			public void mouseReleased(MouseEvent e) {
-				//System.out.println("Mouse button goes up");
-				viewPanel.requestFocus();
-				model.endMarquee(e.getX(), e.getY());
-				viewPanel.repaint();
+				TVBO.this.viewPanel.requestFocus();
+				TVBO.this.model.endMarquee(e.getX(), e.getY());
+				TVBO.this.viewPanel.repaint();
 			}
 		});
-		viewPanel.addMouseMotionListener(new MouseMotionAdapter() {
-			@Override
-			public void mouseDragged(MouseEvent e) {
-				//System.out.println("Mouse is dragged " + e.getX() + " " + e.getY());
-				viewPanel.requestFocus();
-				model.updateMarquee(e.getX(), e.getY());
-				viewPanel.repaint();
+		this.viewPanel.addMouseMotionListener(new MouseMotionAdapter()
+		{
+			public void mouseDragged(MouseEvent e)
+			{
+				TVBO.this.viewPanel.requestFocus();
+				TVBO.this.model.updateMarquee(e.getX(), e.getY());
+				TVBO.this.viewPanel.repaint();
 			}
 		});
-
-
-		unitsAddButton.addActionListener(new ActionListener() {
+		this.unitsAddButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				model.addUnitAction((String)unitsDropDown.getSelectedItem());
-				model.reset();
-				model.play();
-				textArea.setText(model.setTotalsText());
-				viewPanel.repaint();
+				TVBO.this.model.addUnitAction((String)TVBO.this.unitsDropDown.getSelectedItem());
+				TVBO.this.model.reset();
+				TVBO.this.model.play();
+				TVBO.this.textArea.setText(TVBO.this.model.setTotalsText());
+				TVBO.this.viewPanel.repaint();
 			}
 		});
-		buildingsAddButton.addActionListener(new ActionListener() {
+		this.buildingsAddButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				model.addBuildingAction((String)buildingsDropDown.getSelectedItem());
-				model.reset();
-				model.play();
-				textArea.setText(model.setTotalsText());
-				viewPanel.repaint();
+				TVBO.this.model.addBuildingAction((String)TVBO.this.buildingsDropDown.getSelectedItem());
+				TVBO.this.model.reset();
+				TVBO.this.model.play();
+				TVBO.this.textArea.setText(TVBO.this.model.setTotalsText());
+				TVBO.this.viewPanel.repaint();
 			}
 		});
-		researchAddButton.addActionListener(new ActionListener() {
+		this.researchAddButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				model.addResearchAction((String)researchDropDown.getSelectedItem());
-				model.reset();
-				model.play();
-				textArea.setText(model.setTotalsText());
-				viewPanel.repaint();
+				TVBO.this.model.addResearchAction((String)TVBO.this.researchDropDown.getSelectedItem());
+				TVBO.this.model.reset();
+				TVBO.this.model.play();
+				TVBO.this.textArea.setText(TVBO.this.model.setTotalsText());
+				TVBO.this.viewPanel.repaint();
 			}
 		});
-
-		saveButton.addActionListener(new ActionListener() {
+		this.saveButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				model.save();
-			}
-		});
-
-		loadButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				if(model.load()) {
-					model.reset();
-					model.play();
-					viewPanel.repaint();
+				int r = TVBO.this.fc.showSaveDialog(TVBO.this.frame);
+				if (TVBO.this.cwd != null) TVBO.this.fc.setCurrentDirectory(TVBO.this.cwd);
+				if (r == 0) {
+					File file = TVBO.this.fc.getSelectedFile();
+					TVBO.this.cwd = TVBO.this.fc.getCurrentDirectory();
+					TVBO.this.model.save(file);
 				}
 			}
 		});
-
-		viewPanel.addKeyListener(new KeyAdapter() {
+		this.loadButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				int r = TVBO.this.fc.showOpenDialog(TVBO.this.frame);
+				if (TVBO.this.cwd != null) TVBO.this.fc.setCurrentDirectory(TVBO.this.cwd);
+				if (r == 0) {
+					File file = TVBO.this.fc.getSelectedFile();
+					TVBO.this.cwd = TVBO.this.fc.getCurrentDirectory();
+					TVBO.this.model.load(file);
+					TVBO.this.model.reset();
+					TVBO.this.model.play();
+					TVBO.this.viewPanel.repaint();
+				}
+			}
+		});
+		this.clearButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				TVBO.this.model.clear();
+				TVBO.this.viewPanel.repaint();
+			}
+		});
+		this.viewPanel.addKeyListener(new KeyAdapter()
+		{
 			public void keyPressed(KeyEvent e) {
-
-				if(e.getKeyCode()==KeyEvent.VK_A ||e.getKeyCode()==KeyEvent.VK_LEFT || e.getKeyCode()==KeyEvent.VK_NUMPAD4) {
-					model.moveSelected(-1,0);
-					model.reset();
-					model.play();
-					viewPanel.repaint();
-				} else if(e.getKeyCode()==KeyEvent.VK_D||e.getKeyCode()==KeyEvent.VK_RIGHT|| e.getKeyCode()==KeyEvent.VK_NUMPAD6) {
-					model.moveSelected(1,0);
-					model.reset();
-					model.play();
-					viewPanel.repaint();			
-				} else if(e.getKeyCode()==KeyEvent.VK_W||e.getKeyCode()==KeyEvent.VK_UP|| e.getKeyCode()==KeyEvent.VK_NUMPAD8) {
-					model.moveSelected(0,-1);
-					model.reset();
-					model.play();
-					viewPanel.repaint();			
-				} else if(e.getKeyCode()==KeyEvent.VK_S||e.getKeyCode()==KeyEvent.VK_DOWN|| e.getKeyCode()==KeyEvent.VK_NUMPAD2) {
-					model.moveSelected(0,1);
-					model.reset();
-					model.play();
-					viewPanel.repaint();		
-				} else if(e.getKeyCode()==KeyEvent.VK_Q|| e.getKeyCode()==KeyEvent.VK_NUMPAD7) {
-					model.moveSelected(-30,0);
-					model.reset();
-					model.play();
-					viewPanel.repaint();			
-				} else if(e.getKeyCode()==KeyEvent.VK_E|| e.getKeyCode()==KeyEvent.VK_NUMPAD9) {
-					model.moveSelected(30,0);
-					model.reset();
-					model.play();
-					viewPanel.repaint();		
-				} else if(e.getKeyCode()==KeyEvent.VK_R ||e.getKeyCode()==KeyEvent.VK_NUMPAD5) {
-					model.moveSelectedToEarliest();
-					model.reset();
-					model.play();
-					viewPanel.repaint();		
-				} else if(e.getKeyCode()==KeyEvent.VK_DELETE || e.getKeyCode()==KeyEvent.VK_BACK_SPACE) {
-					model.deleteAction();
-					model.reset();
-					model.play();
-					viewPanel.repaint();				
-				} else if(e.getKeyCode()==107) {
-					//System.out.println("Pressed PLUS");
-					model.changeScale(0.1);
-					viewPanel.repaint();
-				} else if(e.getKeyCode()==109) {
-					//System.out.println("Pressed MINUS");
-					model.changeScale(-0.1);
-					viewPanel.repaint();
-				}  else if(e.getKeyCode()==KeyEvent.VK_Z || e.getKeyCode()==KeyEvent.VK_NUMPAD1) {
-					model.scroll(-30);
-					viewPanel.repaint();
-				} else if(e.getKeyCode()==KeyEvent.VK_X || e.getKeyCode()==KeyEvent.VK_NUMPAD3) {
-					model.scroll(30);
-					viewPanel.repaint();
+				if ((e.getKeyCode() == 65) || (e.getKeyCode() == 37) || (e.getKeyCode() == 100)) {
+					TVBO.this.model.moveSelected(-1, 0);
+					TVBO.this.model.reset();
+					TVBO.this.model.play();
+					TVBO.this.viewPanel.repaint();
+				} else if ((e.getKeyCode() == 68) || (e.getKeyCode() == 39) || (e.getKeyCode() == 102)) {
+					TVBO.this.model.moveSelected(1, 0);
+					TVBO.this.model.reset();
+					TVBO.this.model.play();
+					TVBO.this.viewPanel.repaint();
+				} else if ((e.getKeyCode() == 87) || (e.getKeyCode() == 38) || (e.getKeyCode() == 104)) {
+					TVBO.this.model.moveSelected(0, -1);
+					TVBO.this.model.reset();
+					TVBO.this.model.play();
+					TVBO.this.viewPanel.repaint();
+				} else if ((e.getKeyCode() == 83) || (e.getKeyCode() == 40) || (e.getKeyCode() == 98)) {
+					TVBO.this.model.moveSelected(0, 1);
+					TVBO.this.model.reset();
+					TVBO.this.model.play();
+					TVBO.this.viewPanel.repaint();
+				} else if ((e.getKeyCode() == 81) || (e.getKeyCode() == 103)) {
+					TVBO.this.model.moveSelected(-30, 0);
+					TVBO.this.model.reset();
+					TVBO.this.model.play();
+					TVBO.this.viewPanel.repaint();
+				} else if ((e.getKeyCode() == 69) || (e.getKeyCode() == 105)) {
+					TVBO.this.model.moveSelected(30, 0);
+					TVBO.this.model.reset();
+					TVBO.this.model.play();
+					TVBO.this.viewPanel.repaint();
+				} else if ((e.getKeyCode() == 82) || (e.getKeyCode() == 101)) {
+					TVBO.this.model.moveSelectedToEarliest();
+					TVBO.this.model.reset();
+					TVBO.this.model.play();
+					TVBO.this.viewPanel.repaint();
+				} else if ((e.getKeyCode() == 127) || (e.getKeyCode() == 8)) {
+					TVBO.this.model.deleteAction();
+					TVBO.this.model.reset();
+					TVBO.this.model.play();
+					TVBO.this.viewPanel.repaint();
+				} else if (e.getKeyCode() == 78) {
+					TVBO.this.model.selectNext();
+					TVBO.this.viewPanel.repaint();
+				} else if ((e.getKeyCode() == 107) || (e.getKeyCode() == 86))
+				{
+					TVBO.this.model.changeScale(0.1D);
+					TVBO.this.viewPanel.repaint();
+				} else if ((e.getKeyCode() == 109) || (e.getKeyCode() == 67))
+				{
+					TVBO.this.model.changeScale(-0.1D);
+					TVBO.this.viewPanel.repaint();
+				} else if ((e.getKeyCode() == 90) || (e.getKeyCode() == 97)) {
+					TVBO.this.model.scroll(-30);
+					TVBO.this.viewPanel.repaint();
+				} else if ((e.getKeyCode() == 88) || (e.getKeyCode() == 99)) {
+					TVBO.this.model.scroll(30);
+					TVBO.this.viewPanel.repaint();
 				}
-				textArea.setText(model.setTotalsText());
+				TVBO.this.textArea.setText(TVBO.this.model.setTotalsText());
 			}
 		});
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 	}
 }

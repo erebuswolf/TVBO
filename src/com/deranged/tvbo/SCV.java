@@ -1,78 +1,76 @@
-package com.deranged.tvbo;
-
-public class SCV extends SCObject {
-
-	private int job;
-	private double jobtime;
-	private double JOBTIME;
-	
-	private Resource resource;
-	
-	public SCV(Model model) {
-		super(model, "SCV");
-		job=3; // 0 = mining, 1 = gas, 2 = building, 3 = idle
-		jobtime=0;
-		JOBTIME=0;
-		// TODO Auto-generated constructor stub
-	}
-	public void update() {
-		super.update();
-		if(complete) {
-			if(job==0) {
-				if(jobtime<=0) {
-					jobtime+=JOBTIME;
-					if(resource.reduceResource(5)) {
-						model.addMinerals(5);
-					} else {
-						System.out.println(model.printTime() + " Mineral patch depleted");
-						job=3;
-					}
-				}
-			} else if(job==1) {
-				if(jobtime<=0) {
-					jobtime+=JOBTIME;
-					if(resource.reduceResource(4)) {
-						model.addGas(4);
-					} else {
-						System.out.println(model.printTime() + " Vespene Geyser depleted");
-						job=3;
-					}
-				}
-			} else if(job==2) {
-				if(jobtime<=0) {
-					job=0;
-				}
-			} else if(job==3) {
-				
-			}
-			if(jobtime>0) {
-				jobtime--;
-			}
-		}
-	}
-	
-	public void setJobtime(double time, int job) {
-		if(this.job == job) {
-			JOBTIME = time;
-		} else {
-			this.job=job;
-			jobtime=time;
-			JOBTIME=time;
-		}
-	}
-
-
-	public int getJob() {
-		return job;
-	}
-
-	public void setJob(int job) {
-		this.job = job;
-	}
-
-	public void setResource(Resource r) {
-		resource = r;
-	}
-
-
-}
+ package com.deranged.tvbo;
+ 
+ import java.io.PrintStream;
+ 
+ public class SCV extends SCObject
+ {
+   private int job;
+   private double jobtime;
+   private double JOBTIME;
+   private Resource resource;
+ 
+   public SCV(Model model)
+   {
+     super(model, "SCV");
+     this.job = 3;
+     this.jobtime = 0.0D;
+     this.JOBTIME = 0.0D;
+   }
+ 
+   public void update() {
+     super.update();
+     if (this.complete) {
+       if (this.job == 0) {
+         if (this.jobtime <= 0.0D) {
+           this.jobtime += this.JOBTIME;
+           if (this.resource.reduceResource(5)) {
+             this.model.addMinerals(5);
+           } else {
+             System.out.println(this.model.printTime() + " Mineral patch depleted");
+             this.job = 3;
+           }
+         }
+       } else if (this.job == 1) {
+         if (this.jobtime <= 0.0D) {
+           this.jobtime += this.JOBTIME;
+           if (this.resource.reduceResource(4)) {
+             this.model.addGas(4);
+           } else {
+             System.out.println(this.model.printTime() + " Vespene Geyser depleted");
+             this.job = 3;
+           }
+         }
+       } else if ((this.job == 2) && 
+         (this.jobtime <= 0.0D)) {
+         this.job = 0;
+       }
+ 
+       if (this.jobtime > 0.0D)
+         this.jobtime -= 1.0D;
+     }
+   }
+ 
+   public void setJobtime(double time, int job)
+   {
+     if (this.job == job) {
+       this.JOBTIME = time;
+     } else {
+       this.job = job;
+       this.jobtime = time;
+       this.JOBTIME = time;
+     }
+   }
+ 
+   public int getJob()
+   {
+     return this.job;
+   }
+ 
+   public void setJob(int job) {
+     this.job = job;
+   }
+ 
+   public void setResource(Resource r) {
+     this.resource = r;
+   }
+ }

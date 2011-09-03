@@ -1,71 +1,69 @@
-package com.deranged.tvbo;
-
-public class SCActionResearch extends SCAction {
-
-	public SCActionResearch(Model model, int startTime, int y, String name) {
-		super(model, startTime, y, model.getTime(name), name);
-	}
-
-	public boolean execute() {
-		boolean f = true;
-		String prereq = model.getPrereq(name); // eg factory for nitro pack
-		String build = model.getBuild(name);   // eg barracks for stim, ebay for +1
-		String tech = model.getTech(name);   // eg techlab for stim
-		//System.out.println(model.printTime() + "   <SCActionResearch> Build = "+build+" Prereq = "+prereq+" Tech = "+tech);
-		
-		boolean pre=true;
-		if(name.matches(".*Level.*")) {
-			int level = Integer.parseInt(name.substring(name.length()-1, name.length()));
-			//System.out.println(model.printTime() + "   <SCActionResearch> Upgrade: Level: " + level);
-			//int level = (Integer.valueOf(name.substring(name.length()-2, name.length()-1))).intValue();
-			if(level>1) {
-				String s = name.substring(0, name.length()-1)+(level-1);
-				//System.out.println("Look to see if " + s + " is complete.");
-				if(model.isObjectComplete(s)) {
-					pre=true;
-				} else {
-					pre=false;
-				}
-			}
-		}
-		
-		
-		if(complete) {
-			f = false;
-		} else if(model.alreadyStarted(name)) {
-			f=false;
-			errorMsg="ALREADY";			
-		} else if(!pre) {
-			f = false;
-			errorMsg = "PREREQ";
-		} else if(prereq!=null && !model.isObjectComplete(prereq)) {
-			f = false;
-			errorMsg = "PREREQ";
-		} else if(build!=null && !model.isObjectComplete(build)) {
-			f = false;
-			errorMsg = "BUILD";
-		} else if(tech!=null && !model.hasAddon(build, tech)) {
-			f = false;
-			errorMsg = "TECHLAB";
-		} else if(model.getMinerals()<model.getMineralCost(name)) {
-			f = false;
-			errorMsg = "MINERALS";
-		} else if(model.getGas() < model.getGasCost(name)) {
-			f = false;
-			errorMsg = "GAS";
-		} else if(tech!=null && !model.isAvailable(tech)) {
-			f = false;
-			errorMsg = "QUEUE";
-		} else if(tech==null && !model.isAvailable(build)) {
-			f = false;
-			errorMsg = "QUEUE";
-		} else if(!model.addResearch(name)) {
-			f = false;
-			errorMsg = "UNKNOWN";
-		}
-		if(f) {
-			complete = true;
-		}
-		return f;
-	}
-}
+ package com.deranged.tvbo;
+ 
+ public class SCActionResearch extends SCAction
+ {
+   public SCActionResearch(Model model, int startTime, int y, String name)
+   {
+     super(model, startTime, y, model.getTime(name), name);
+   }
+ 
+   public boolean execute() {
+     boolean f = true;
+     String prereq = this.model.getPrereq(this.name);
+     String build = this.model.getBuild(this.name);
+     String tech = this.model.getTech(this.name);
+ 
+     boolean pre = true;
+     if (this.name.matches(".*Level.*")) {
+       int level = Integer.parseInt(this.name.substring(this.name.length() - 1, this.name.length()));
+ 
+       if (level > 1) {
+         String s = this.name.substring(0, this.name.length() - 1) + (level - 1);
+ 
+         if (this.model.isObjectComplete(s))
+           pre = true;
+         else {
+           pre = false;
+         }
+       }
+     }
+ 
+     if (this.complete) {
+       f = false;
+     } else if (this.model.alreadyStarted(this.name)) {
+       f = false;
+       this.errorMsg = "ALREADY";
+     } else if (!pre) {
+       f = false;
+       this.errorMsg = "PREREQ";
+     } else if ((prereq != null) && (!this.model.isObjectComplete(prereq))) {
+       f = false;
+       this.errorMsg = "PREREQ";
+     } else if ((build != null) && (!this.model.isObjectComplete(build))) {
+       f = false;
+       this.errorMsg = "BUILD";
+     } else if ((tech != null) && (!this.model.hasAddon(build, tech))) {
+       f = false;
+       this.errorMsg = "TECHLAB";
+     } else if ((tech != null) && (!this.model.isAvailable(tech))) {
+       f = false;
+       this.errorMsg = "QUEUE";
+     } else if ((tech == null) && (!this.model.isAvailable(build))) {
+       f = false;
+       this.errorMsg = "QUEUE";
+     } else if (this.model.getMinerals() < this.model.getMineralCost(this.name)) {
+       f = false;
+       this.errorMsg = "MINERALS";
+     } else if (this.model.getGas() < this.model.getGasCost(this.name)) {
+       f = false;
+       this.errorMsg = "GAS";
+     } else if (!this.model.addResearch(this.name)) {
+       f = false;
+       this.errorMsg = "UNKNOWN";
+     }
+     if (f) {
+       this.complete = true;
+     }
+     return f;
+   }
+ }
